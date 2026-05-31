@@ -231,4 +231,4 @@ Wenn du Lautsprecher statt Kopfhörer nutzt, kann dein echtes Mikrofon den Lauts
 
 ## Lizenz
 
-AGPL-3.0-or-later, passend zur beim Repo-Anlegen gewählten Lizenzdatei.
+MIT

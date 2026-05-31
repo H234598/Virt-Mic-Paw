@@ -1,0 +1,333 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+APP="virt-mic-paw"
+BUS_SINK="virtmicpaw_bus"
+VIRT_SOURCE="virtmicpaw"
+BUS_DESC="Virt-Mic-Paw Mix-Bus"
+SOURCE_DESC="Virt-Mic-Paw-Mixed-Microphone"
+STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/virt-mic-paw"
+STATE_FILE="$STATE_DIR/modules"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/virt-mic-paw"
+CONFIG_FILE="$CONFIG_DIR/config.env"
+LATENCY_MSEC="20"
+SET_DEFAULT_SOURCE="1"
+MIC_SOURCE=""
+SINK=""
+MONITOR_SOURCE=""
+
+log() { printf '%s\n' "$*"; }
+warn() { printf 'WARN: %s\n' "$*" >&2; }
+err() { printf 'ERROR: %s\n' "$*" >&2; }
+need_cmd() { command -v "$1" >/dev/null 2>&1 || { err "Benötigter Befehl fehlt: $1"; exit 1; }; }
+
+usage() {
+  cat <<'EOF'
+Virt-Mic-Paw - virtuelles Mikrofon aus Mikrofon plus Systemaudio
+
+Usage:
+  virt-mic-paw start [--mic SOURCE] [--sink SINK | --monitor SOURCE] [--latency MS] [--no-default]
+  virt-mic-paw stop
+  virt-mic-paw restart [Optionen wie start]
+  virt-mic-paw status
+  virt-mic-paw list
+  virt-mic-paw config
+  virt-mic-paw diag
+  virt-mic-paw help
+
+Beispiele:
+  virt-mic-paw start
+  virt-mic-paw start --latency 50
+  virt-mic-paw start --mic alsa_input.foo --sink alsa_output.bar
+  virt-mic-paw list
+
+Konfiguration:
+  ~/.config/virt-mic-paw/config.env
+
+Variablen:
+  VMP_MIC_SOURCE=""
+  VMP_SINK=""
+  VMP_MONITOR_SOURCE=""
+  VMP_LATENCY_MSEC="20"
+  VMP_SET_DEFAULT_SOURCE="1"
+EOF
+}
+
+load_config() {
+  if [[ -f "$CONFIG_FILE" ]]; then
+    # shellcheck source=/dev/null
+    source "$CONFIG_FILE"
+    MIC_SOURCE="${VMP_MIC_SOURCE:-$MIC_SOURCE}"
+    SINK="${VMP_SINK:-$SINK}"
+    MONITOR_SOURCE="${VMP_MONITOR_SOURCE:-$MONITOR_SOURCE}"
+    LATENCY_MSEC="${VMP_LATENCY_MSEC:-$LATENCY_MSEC}"
+    SET_DEFAULT_SOURCE="${VMP_SET_DEFAULT_SOURCE:-$SET_DEFAULT_SOURCE}"
+  fi
+}
+
+write_default_config() {
+  mkdir -p "$CONFIG_DIR"
+  if [[ -f "$CONFIG_FILE" ]]; then
+    log "Konfiguration existiert bereits: $CONFIG_FILE"
+    return
+  fi
+  cat >"$CONFIG_FILE" <<'EOF'
+# Virt-Mic-Paw Konfiguration
+# Leere Werte bedeuten: automatisch erkennen.
+
+# Echtes Mikrofon. Siehe: virt-mic-paw list
+VMP_MIC_SOURCE=""
+
+# Ausgabe-Sink. Aus diesem wird automatisch .monitor gebildet.
+VMP_SINK=""
+
+# Alternativ direkt eine Monitor-Source setzen.
+VMP_MONITOR_SOURCE=""
+
+# Höhere Werte können Knacksen reduzieren, erhöhen aber die Verzögerung.
+VMP_LATENCY_MSEC="20"
+
+# 1 = virtuelles Mikrofon als Default-Eingabe setzen, 0 = nicht ändern.
+VMP_SET_DEFAULT_SOURCE="1"
+EOF
+  log "Konfiguration erstellt: $CONFIG_FILE"
+}
+
+list_devices() {
+  need_cmd pactl
+  log "== Sinks/Ausgaben =="
+  pactl list short sinks || true
+  log ""
+  log "== Sources/Eingaben inkl. Monitore =="
+  pactl list short sources || true
+  log ""
+  log "== Nicht-Monitor-Quellen, wahrscheinlich Mikrofone =="
+  pactl list short sources | awk '$2 !~ /\.monitor$/ {print}' || true
+}
+
+sanitize_default_mic() {
+  local src="$1"
+  if [[ "$src" == "$VIRT_SOURCE" || "$src" == "$BUS_SINK.monitor" || "$src" == *.monitor ]]; then
+    pactl list short sources | awk -v virt="$VIRT_SOURCE" '$2 !~ /\.monitor$/ && $2 != virt {print $2; exit}'
+  else
+    printf '%s\n' "$src"
+  fi
+}
+
+resolve_sources() {
+  need_cmd pactl
+  local default_sink default_source
+  default_sink="$(pactl get-default-sink 2>/dev/null || true)"
+  default_source="$(pactl get-default-source 2>/dev/null || true)"
+
+  if [[ -z "$SINK" ]]; then
+    SINK="$default_sink"
+  fi
+
+  if [[ -z "$MONITOR_SOURCE" ]]; then
+    if [[ -z "$SINK" ]]; then
+      err "Keine Ausgabe gefunden. Bitte mit --sink oder --monitor angeben."
+      exit 1
+    fi
+    MONITOR_SOURCE="${SINK}.monitor"
+  fi
+
+  if [[ -z "$MIC_SOURCE" ]]; then
+    MIC_SOURCE="$(sanitize_default_mic "$default_source")"
+  fi
+
+  if [[ -z "$MIC_SOURCE" ]]; then
+    err "Kein echtes Mikrofon gefunden. Nutze 'virt-mic-paw list' und dann --mic SOURCE."
+    exit 1
+  fi
+
+  if ! pactl list short sources | awk '{print $2}' | grep -Fxq "$MIC_SOURCE"; then
+    err "Mikrofon-Source nicht gefunden: $MIC_SOURCE"
+    exit 1
+  fi
+
+  if ! pactl list short sources | awk '{print $2}' | grep -Fxq "$MONITOR_SOURCE"; then
+    err "Monitor-Source nicht gefunden: $MONITOR_SOURCE"
+    err "Nutze 'virt-mic-paw list' und prüfe --sink oder --monitor."
+    exit 1
+  fi
+}
+
+unload_modules() {
+  mkdir -p "$STATE_DIR"
+  if [[ -f "$STATE_FILE" ]]; then
+    tac "$STATE_FILE" | while read -r id; do
+      [[ -n "${id:-}" ]] && pactl unload-module "$id" 2>/dev/null || true
+    done
+    rm -f "$STATE_FILE"
+  fi
+
+  # Aufräumen, falls ein vorheriger Lauf ohne State-Datei übrig blieb.
+  pactl list short modules | awk -v a="$APP" '$0 ~ a {print $1}' | while read -r id; do
+    [[ -n "${id:-}" ]] && pactl unload-module "$id" 2>/dev/null || true
+  done
+}
+
+load_module() {
+  local id
+  id="$(pactl load-module "$@")"
+  printf '%s\n' "$id" >>"$STATE_FILE"
+}
+
+start_mix() {
+  need_cmd pactl
+  mkdir -p "$STATE_DIR"
+  : >"$STATE_FILE"
+
+  unload_modules
+  : >"$STATE_FILE"
+  resolve_sources
+
+  load_module module-null-sink \
+    sink_name="$BUS_SINK" \
+    sink_properties="device.description=$BUS_DESC application.name=$APP"
+
+  load_module module-loopback \
+    source="$MIC_SOURCE" \
+    sink="$BUS_SINK" \
+    latency_msec="$LATENCY_MSEC" \
+    source_dont_move=true \
+    sink_dont_move=true
+
+  load_module module-loopback \
+    source="$MONITOR_SOURCE" \
+    sink="$BUS_SINK" \
+    latency_msec="$LATENCY_MSEC" \
+    source_dont_move=true \
+    sink_dont_move=true
+
+  load_module module-remap-source \
+    master="${BUS_SINK}.monitor" \
+    source_name="$VIRT_SOURCE" \
+    source_properties="device.description=$SOURCE_DESC application.name=$APP"
+
+  if [[ "$SET_DEFAULT_SOURCE" == "1" ]]; then
+    pactl set-default-source "$VIRT_SOURCE" || warn "Konnte Default-Source nicht setzen."
+  fi
+
+  log "Virt-Mic-Paw läuft."
+  log "  Mikrofon:        $MIC_SOURCE"
+  log "  Systemaudio:     $MONITOR_SOURCE"
+  log "  Virtuelles Mic:  $VIRT_SOURCE ($SOURCE_DESC)"
+  log "  Latenz:          ${LATENCY_MSEC} ms"
+}
+
+stop_mix() {
+  need_cmd pactl
+  unload_modules
+  log "Virt-Mic-Paw gestoppt."
+}
+
+status_mix() {
+  need_cmd pactl
+  local found=0
+  log "== Virt-Mic-Paw Module =="
+  if pactl list short modules | grep -F "$APP"; then
+    found=1
+  else
+    log "Keine Virt-Mic-Paw-Module gefunden."
+  fi
+  log ""
+  log "== Virtuelle Source =="
+  if pactl list short sources | grep -F "$VIRT_SOURCE"; then
+    found=1
+  else
+    log "Virtuelles Mikrofon nicht aktiv."
+  fi
+  log ""
+  log "== Default Source =="
+  pactl get-default-source 2>/dev/null || true
+  [[ "$found" -eq 1 ]]
+}
+
+diag() {
+  need_cmd pactl
+  log "== pactl info =="
+  pactl info || true
+  log ""
+  list_devices
+  log ""
+  status_mix || true
+  log ""
+  log "== State =="
+  log "STATE_FILE=$STATE_FILE"
+  [[ -f "$STATE_FILE" ]] && cat "$STATE_FILE" || log "Keine State-Datei."
+  log ""
+  log "== Config =="
+  log "CONFIG_FILE=$CONFIG_FILE"
+  [[ -f "$CONFIG_FILE" ]] && cat "$CONFIG_FILE" || log "Keine Config-Datei."
+}
+
+parse_start_args() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --mic)
+        MIC_SOURCE="${2:-}"; shift 2 ;;
+      --sink)
+        SINK="${2:-}"; shift 2 ;;
+      --monitor)
+        MONITOR_SOURCE="${2:-}"; shift 2 ;;
+      --latency)
+        LATENCY_MSEC="${2:-}"; shift 2 ;;
+      --no-default)
+        SET_DEFAULT_SOURCE="0"; shift ;;
+      -h|--help)
+        usage; exit 0 ;;
+      *)
+        err "Unbekannte Option: $1"; usage; exit 2 ;;
+    esac
+  done
+
+  if ! [[ "$LATENCY_MSEC" =~ ^[0-9]+$ ]]; then
+    err "--latency muss eine Zahl in Millisekunden sein."
+    exit 2
+  fi
+}
+
+main() {
+  local cmd="${1:-help}"
+  shift || true
+  load_config
+
+  case "$cmd" in
+    start)
+      parse_start_args "$@"
+      start_mix
+      ;;
+    stop)
+      stop_mix
+      ;;
+    restart)
+      parse_start_args "$@"
+      stop_mix >/dev/null || true
+      start_mix
+      ;;
+    status)
+      status_mix
+      ;;
+    list)
+      list_devices
+      ;;
+    config)
+      write_default_config
+      ;;
+    diag|diagnose)
+      diag
+      ;;
+    help|-h|--help)
+      usage
+      ;;
+    *)
+      err "Unbekannter Befehl: $cmd"
+      usage
+      exit 2
+      ;;
+  esac
+}
+
+main "$@"

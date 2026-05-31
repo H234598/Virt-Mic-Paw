@@ -1,0 +1,7 @@
+*.tar.gz
+*.rpm
+.DS_Store
+.vscode/
+.idea/
+__pycache__/
+*.swp

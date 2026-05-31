@@ -1,0 +1,14 @@
+[Unit]
+Description=Virt-Mic-Paw virtual mixed microphone
+Documentation=https://github.com/H234598/Virt-Mic-Paw
+After=pipewire.service pipewire-pulse.service wireplumber.service
+Wants=pipewire-pulse.service wireplumber.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/virt-mic-paw start
+ExecStop=%h/.local/bin/virt-mic-paw stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target
