@@ -297,6 +297,11 @@ if [[ "$config_mode" != "600" ]]; then
   echo "default config mode was $config_mode, expected 600" >&2
   exit 1
 fi
+config_dir_mode="$(stat -c '%a' "$default_config_home/virt-mic-paw")"
+if [[ "$config_dir_mode" != "700" ]]; then
+  echo "default config directory mode was $config_dir_mode, expected 700" >&2
+  exit 1
+fi
 
 fakebin="$tmpdir/fakebin"
 mkdir -p "$fakebin"

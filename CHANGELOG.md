@@ -9,6 +9,7 @@
 - Add a 10-minute timeout to the GitHub Actions check job.
 - Cancel superseded GitHub Actions check runs on the same ref.
 - Stop printing raw `config.env` contents in `diag` output.
+- Create the Virt-Mic-Paw config directory with private permissions.
 
 ## 0.1.1 - 2026-06-01
 

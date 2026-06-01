@@ -103,6 +103,7 @@ validate_owned_not_writable() {
 
 write_default_config() {
   mkdir -p "$CONFIG_DIR"
+  chmod 0700 "$CONFIG_DIR"
   if [[ -f "$CONFIG_FILE" ]]; then
     log "Konfiguration existiert bereits: $CONFIG_FILE"
     return
