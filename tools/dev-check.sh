@@ -180,12 +180,14 @@ case "${1:-}" in
       "short sources")
         if [[ "${VMP_FAKE_PACTL_STATUS:-}" == "active" ]]; then
           printf '1\ttest_mic\n2\ttest_sink.monitor\n3\tvirtmicpaw\n'
+        elif [[ "${VMP_FAKE_PACTL_STATUS:-}" == "module-only" ]]; then
+          printf '1\ttest_mic\n2\ttest_sink.monitor\n'
         else
           printf '1\ttest_mic\n2\ttest_sink.monitor\n'
         fi
         ;;
       "short modules")
-        if [[ "${VMP_FAKE_PACTL_STATUS:-}" == "active" ]]; then
+        if [[ "${VMP_FAKE_PACTL_STATUS:-}" == "active" || "${VMP_FAKE_PACTL_STATUS:-}" == "module-only" ]]; then
           printf '10\tmodule-null-sink\tapplication.name=virt-mic-paw\n'
         else
           printf '\n'
@@ -266,5 +268,13 @@ if ! PATH="$fakebin:$PATH" VMP_FAKE_PACTL_STATUS=active \
 fi
 grep -Fq 'application.name=virt-mic-paw' "$tmpdir/status-active.out"
 grep -Fq 'virtmicpaw' "$tmpdir/status-active.out"
+
+if PATH="$fakebin:$PATH" VMP_FAKE_PACTL_STATUS=module-only \
+  bin/virt-mic-paw status >"$tmpdir/status-module-only.out"; then
+  echo "module-only status unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fq 'application.name=virt-mic-paw' "$tmpdir/status-module-only.out"
+grep -Fxq 'Virtuelles Mikrofon nicht aktiv.' "$tmpdir/status-module-only.out"
 
 echo "checks ok"

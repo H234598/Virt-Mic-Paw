@@ -20,6 +20,7 @@
 - Make `install.sh --enable` fail early when `pactl` is unavailable.
 - Test that `install.sh --no-enable` still works without `pactl`.
 - Add fake-`pactl` smoke tests for active and inactive `status` behavior.
+- Make `status` succeed only when the virtual source is present, not merely when stale modules exist.
 
 ## 0.1.0 - 2026-06-01
 

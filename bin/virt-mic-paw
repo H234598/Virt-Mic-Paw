@@ -248,24 +248,24 @@ stop_mix() {
 
 status_mix() {
   need_cmd pactl
-  local found=0
+  local source_found=0
   log "== Virt-Mic-Paw Module =="
   if pactl list short modules | grep -F "$APP"; then
-    found=1
+    :
   else
     log "Keine Virt-Mic-Paw-Module gefunden."
   fi
   log ""
   log "== Virtuelle Source =="
   if pactl list short sources | grep -F "$VIRT_SOURCE"; then
-    found=1
+    source_found=1
   else
     log "Virtuelles Mikrofon nicht aktiv."
   fi
   log ""
   log "== Default Source =="
   pactl get-default-source 2>/dev/null || true
-  [[ "$found" -eq 1 ]]
+  [[ "$source_found" -eq 1 ]]
 }
 
 diag() {
