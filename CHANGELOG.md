@@ -6,6 +6,7 @@
 - Add an install smoke test to the development checks for the generated systemd service.
 - Correct the RPM license metadata to `AGPL-3.0-or-later`.
 - Update the ShellCheck workflow to `actions/checkout@v6`.
+- Harden `start` and `restart` option parsing for missing values, invalid latency and mutually exclusive sink/monitor selection.
 
 ## 0.1.0 - 2026-06-01
 

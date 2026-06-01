@@ -276,16 +276,21 @@ diag() {
 }
 
 parse_start_args() {
+  local sink_given=0 monitor_given=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --mic)
-        MIC_SOURCE="${2:-}"; shift 2 ;;
+        require_option_value "$1" "${2:-}"
+        MIC_SOURCE="$2"; shift 2 ;;
       --sink)
-        SINK="${2:-}"; shift 2 ;;
+        require_option_value "$1" "${2:-}"
+        SINK="$2"; sink_given=1; shift 2 ;;
       --monitor)
-        MONITOR_SOURCE="${2:-}"; shift 2 ;;
+        require_option_value "$1" "${2:-}"
+        MONITOR_SOURCE="$2"; monitor_given=1; shift 2 ;;
       --latency)
-        LATENCY_MSEC="${2:-}"; shift 2 ;;
+        require_option_value "$1" "${2:-}"
+        LATENCY_MSEC="$2"; shift 2 ;;
       --no-default)
         SET_DEFAULT_SOURCE="0"; shift ;;
       -h|--help)
@@ -297,6 +302,24 @@ parse_start_args() {
 
   if ! [[ "$LATENCY_MSEC" =~ ^[0-9]+$ ]]; then
     err "--latency muss eine Zahl in Millisekunden sein."
+    exit 2
+  fi
+
+  if [[ "$LATENCY_MSEC" -lt 1 ]]; then
+    err "--latency muss mindestens 1 Millisekunde sein."
+    exit 2
+  fi
+
+  if [[ "$sink_given" -eq 1 && "$monitor_given" -eq 1 ]]; then
+    err "--sink und --monitor dürfen nicht gemeinsam gesetzt werden."
+    exit 2
+  fi
+}
+
+require_option_value() {
+  local option="$1" value="$2"
+  if [[ -z "$value" || "$value" == --* ]]; then
+    err "$option benötigt einen Wert."
     exit 2
   fi
 }

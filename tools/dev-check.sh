@@ -21,4 +21,22 @@ if grep -Fq '@BINDIR@' "$service_file"; then
   exit 1
 fi
 
+if bin/virt-mic-paw start --mic >/dev/null 2>"$tmpdir/missing-arg.err"; then
+  echo "missing --mic argument unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq 'ERROR: --mic benötigt einen Wert.' "$tmpdir/missing-arg.err"
+
+if bin/virt-mic-paw start --sink out --monitor out.monitor >/dev/null 2>"$tmpdir/exclusive.err"; then
+  echo "--sink with --monitor unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq 'ERROR: --sink und --monitor dürfen nicht gemeinsam gesetzt werden.' "$tmpdir/exclusive.err"
+
+if bin/virt-mic-paw start --latency 0 >/dev/null 2>"$tmpdir/latency.err"; then
+  echo "--latency 0 unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq 'ERROR: --latency muss mindestens 1 Millisekunde sein.' "$tmpdir/latency.err"
+
 echo "checks ok"
