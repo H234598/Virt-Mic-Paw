@@ -74,23 +74,29 @@ load_config() {
 }
 
 validate_config_permissions() {
-  local config_stat owner mode uid group_perm other_perm
-  config_stat="$(stat -c '%u %a' "$CONFIG_FILE" 2>/dev/null || true)"
-  read -r owner mode <<<"$config_stat"
+  validate_owned_not_writable "$CONFIG_DIR" "Config-Verzeichnis"
+  validate_owned_not_writable "$CONFIG_FILE" "Konfiguration"
+}
+
+validate_owned_not_writable() {
+  local path="$1" label="$2"
+  local path_stat owner mode uid group_perm other_perm
+  path_stat="$(stat -c '%u %a' "$path" 2>/dev/null || true)"
+  read -r owner mode <<<"$path_stat"
   uid="$(id -u)"
   if [[ ! "$owner" =~ ^[0-9]+$ || ! "$mode" =~ ^[0-7]+$ || ${#mode} -lt 3 ]]; then
-    warn "Konnte Config-Rechte nicht prüfen: $CONFIG_FILE"
+    warn "Konnte Rechte nicht prüfen: $path"
     return
   fi
   if [[ "$owner" != "$uid" ]]; then
-    err "Konfiguration gehört nicht dem aktuellen Nutzer: $CONFIG_FILE"
+    err "$label gehört nicht dem aktuellen Nutzer: $path"
     exit 1
   fi
   group_perm="${mode: -2:1}"
   other_perm="${mode: -1}"
   if (( (group_perm & 2) != 0 || (other_perm & 2) != 0 )); then
-    err "Konfiguration ist gruppen- oder welt-schreibbar: $CONFIG_FILE"
-    err "Korrigiere die Rechte mit: chmod go-w '$CONFIG_FILE'"
+    err "$label ist gruppen- oder welt-schreibbar: $path"
+    err "Korrigiere die Rechte mit: chmod go-w '$path'"
     exit 1
   fi
 }

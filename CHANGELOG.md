@@ -32,6 +32,7 @@
 - Skip invalid module IDs from corrupted runtime state during `stop`.
 - Create private config files and reject group- or world-writable `config.env`.
 - Reject `config.env` files that are not owned by the current user.
+- Reject group- or world-writable config directories before loading config.
 
 ## 0.1.0 - 2026-06-01
 

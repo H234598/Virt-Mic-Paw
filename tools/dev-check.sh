@@ -228,6 +228,21 @@ fi
 grep -Fxq "ERROR: Konfiguration ist gruppen- oder welt-schreibbar: $insecure_config_home/virt-mic-paw/config.env" \
   "$tmpdir/config-insecure.err"
 
+insecure_config_dir_home="$tmpdir/insecure-config-dir-home"
+mkdir -p "$insecure_config_dir_home/virt-mic-paw"
+cat >"$insecure_config_dir_home/virt-mic-paw/config.env" <<'EOF'
+VMP_SET_DEFAULT_SOURCE="1"
+EOF
+chmod 0600 "$insecure_config_dir_home/virt-mic-paw/config.env"
+chmod 0777 "$insecure_config_dir_home/virt-mic-paw"
+if XDG_CONFIG_HOME="$insecure_config_dir_home" bin/virt-mic-paw version \
+  >/dev/null 2>"$tmpdir/config-dir-insecure.err"; then
+  echo "world-writable config directory unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq "ERROR: Config-Verzeichnis ist gruppen- oder welt-schreibbar: $insecure_config_dir_home/virt-mic-paw" \
+  "$tmpdir/config-dir-insecure.err"
+
 wrong_owner_config_home="$tmpdir/wrong-owner-config-home"
 mkdir -p "$wrong_owner_config_home/virt-mic-paw"
 cat >"$wrong_owner_config_home/virt-mic-paw/config.env" <<'EOF'
