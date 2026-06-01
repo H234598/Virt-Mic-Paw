@@ -7,6 +7,7 @@
 - Rename the GitHub Actions workflow from `shellcheck` to `check`.
 - Limit GitHub Actions token permissions to read-only repository contents.
 - Add a 10-minute timeout to the GitHub Actions check job.
+- Cancel superseded GitHub Actions check runs on the same ref.
 
 ## 0.1.1 - 2026-06-01
 
