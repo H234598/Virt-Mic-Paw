@@ -214,6 +214,30 @@ if XDG_CONFIG_HOME="$config_home" bin/virt-mic-paw start >/dev/null 2>"$tmpdir/c
 fi
 grep -Fxq 'ERROR: VMP_SET_DEFAULT_SOURCE muss 0 oder 1 sein.' "$tmpdir/config-default.err"
 
+insecure_config_home="$tmpdir/insecure-config-home"
+mkdir -p "$insecure_config_home/virt-mic-paw"
+cat >"$insecure_config_home/virt-mic-paw/config.env" <<'EOF'
+VMP_SET_DEFAULT_SOURCE="1"
+EOF
+chmod 0666 "$insecure_config_home/virt-mic-paw/config.env"
+if XDG_CONFIG_HOME="$insecure_config_home" bin/virt-mic-paw version \
+  >/dev/null 2>"$tmpdir/config-insecure.err"; then
+  echo "world-writable config unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq "ERROR: Konfiguration ist gruppen- oder welt-schreibbar: $insecure_config_home/virt-mic-paw/config.env" \
+  "$tmpdir/config-insecure.err"
+
+default_config_home="$tmpdir/default-config-home"
+XDG_CONFIG_HOME="$default_config_home" bin/virt-mic-paw config >"$tmpdir/config-create.out"
+grep -Fxq "Konfiguration erstellt: $default_config_home/virt-mic-paw/config.env" \
+  "$tmpdir/config-create.out"
+config_mode="$(stat -c '%a' "$default_config_home/virt-mic-paw/config.env")"
+if [[ "$config_mode" != "600" ]]; then
+  echo "default config mode was $config_mode, expected 600" >&2
+  exit 1
+fi
+
 fakebin="$tmpdir/fakebin"
 mkdir -p "$fakebin"
 cat >"$fakebin/pactl" <<'EOF'

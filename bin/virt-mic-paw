@@ -62,6 +62,7 @@ show_version() {
 
 load_config() {
   if [[ -f "$CONFIG_FILE" ]]; then
+    validate_config_permissions
     # shellcheck source=/dev/null
     source "$CONFIG_FILE"
     MIC_SOURCE="${VMP_MIC_SOURCE:-$MIC_SOURCE}"
@@ -69,6 +70,22 @@ load_config() {
     MONITOR_SOURCE="${VMP_MONITOR_SOURCE:-$MONITOR_SOURCE}"
     LATENCY_MSEC="${VMP_LATENCY_MSEC:-$LATENCY_MSEC}"
     SET_DEFAULT_SOURCE="${VMP_SET_DEFAULT_SOURCE:-$SET_DEFAULT_SOURCE}"
+  fi
+}
+
+validate_config_permissions() {
+  local mode group_perm other_perm
+  mode="$(stat -c '%a' "$CONFIG_FILE" 2>/dev/null || true)"
+  if [[ ! "$mode" =~ ^[0-7]+$ || ${#mode} -lt 3 ]]; then
+    warn "Konnte Config-Rechte nicht prüfen: $CONFIG_FILE"
+    return
+  fi
+  group_perm="${mode: -2:1}"
+  other_perm="${mode: -1}"
+  if (( (group_perm & 2) != 0 || (other_perm & 2) != 0 )); then
+    err "Konfiguration ist gruppen- oder welt-schreibbar: $CONFIG_FILE"
+    err "Korrigiere die Rechte mit: chmod go-w '$CONFIG_FILE'"
+    exit 1
   fi
 }
 
@@ -97,6 +114,7 @@ VMP_LATENCY_MSEC="20"
 # 1 = virtuelles Mikrofon als Default-Eingabe setzen, 0 = nicht ändern.
 VMP_SET_DEFAULT_SOURCE="1"
 EOF
+  chmod 0600 "$CONFIG_FILE"
   log "Konfiguration erstellt: $CONFIG_FILE"
 }
 
