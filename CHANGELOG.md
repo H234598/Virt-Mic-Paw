@@ -8,6 +8,7 @@
 - Update the ShellCheck workflow to `actions/checkout@v6`.
 - Harden `start` and `restart` option parsing for missing values, invalid latency and mutually exclusive sink/monitor selection.
 - Harden `install.sh --prefix` option parsing for missing values.
+- Validate conflicting sink/monitor configuration and invalid `VMP_SET_DEFAULT_SOURCE` values.
 
 ## 0.1.0 - 2026-06-01
 

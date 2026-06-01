@@ -45,4 +45,25 @@ if ./install.sh --prefix >/dev/null 2>"$tmpdir/install-prefix.err"; then
 fi
 grep -Fxq 'ERROR: --prefix benötigt einen Wert.' "$tmpdir/install-prefix.err"
 
+config_home="$tmpdir/config-home"
+mkdir -p "$config_home/virt-mic-paw"
+cat >"$config_home/virt-mic-paw/config.env" <<'EOF'
+VMP_SINK="out"
+VMP_MONITOR_SOURCE="out.monitor"
+EOF
+if XDG_CONFIG_HOME="$config_home" bin/virt-mic-paw start >/dev/null 2>"$tmpdir/config-exclusive.err"; then
+  echo "config with sink and monitor unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq 'ERROR: --sink und --monitor dürfen nicht gemeinsam gesetzt werden.' "$tmpdir/config-exclusive.err"
+
+cat >"$config_home/virt-mic-paw/config.env" <<'EOF'
+VMP_SET_DEFAULT_SOURCE="yes"
+EOF
+if XDG_CONFIG_HOME="$config_home" bin/virt-mic-paw start >/dev/null 2>"$tmpdir/config-default.err"; then
+  echo "invalid VMP_SET_DEFAULT_SOURCE unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq 'ERROR: VMP_SET_DEFAULT_SOURCE muss 0 oder 1 sein.' "$tmpdir/config-default.err"
+
 echo "checks ok"

@@ -276,7 +276,6 @@ diag() {
 }
 
 parse_start_args() {
-  local sink_given=0 monitor_given=0
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --mic)
@@ -284,10 +283,10 @@ parse_start_args() {
         MIC_SOURCE="$2"; shift 2 ;;
       --sink)
         require_option_value "$1" "${2:-}"
-        SINK="$2"; sink_given=1; shift 2 ;;
+        SINK="$2"; shift 2 ;;
       --monitor)
         require_option_value "$1" "${2:-}"
-        MONITOR_SOURCE="$2"; monitor_given=1; shift 2 ;;
+        MONITOR_SOURCE="$2"; shift 2 ;;
       --latency)
         require_option_value "$1" "${2:-}"
         LATENCY_MSEC="$2"; shift 2 ;;
@@ -310,8 +309,13 @@ parse_start_args() {
     exit 2
   fi
 
-  if [[ "$sink_given" -eq 1 && "$monitor_given" -eq 1 ]]; then
+  if [[ -n "$SINK" && -n "$MONITOR_SOURCE" ]]; then
     err "--sink und --monitor dürfen nicht gemeinsam gesetzt werden."
+    exit 2
+  fi
+
+  if [[ "$SET_DEFAULT_SOURCE" != "0" && "$SET_DEFAULT_SOURCE" != "1" ]]; then
+    err "VMP_SET_DEFAULT_SOURCE muss 0 oder 1 sein."
     exit 2
   fi
 }
