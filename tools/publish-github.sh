@@ -6,6 +6,10 @@ if [[ -z "$repo" ]]; then
   echo "Usage: $0 OWNER/REPO" >&2
   exit 2
 fi
+if ! [[ "$repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+  echo "repo must be in OWNER/REPO format." >&2
+  exit 2
+fi
 
 if ! command -v git >/dev/null 2>&1; then
   echo "git fehlt." >&2

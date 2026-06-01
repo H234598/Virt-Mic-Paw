@@ -141,6 +141,12 @@ if ./uninstall.sh --prefix >/dev/null 2>"$tmpdir/uninstall-prefix.err"; then
 fi
 grep -Fxq 'ERROR: --prefix benötigt einen Wert.' "$tmpdir/uninstall-prefix.err"
 
+if tools/publish-github.sh 'bad repo/name' >/dev/null 2>"$tmpdir/publish-repo.err"; then
+  echo "publish accepted invalid repo argument" >&2
+  exit 1
+fi
+grep -Fxq 'repo must be in OWNER/REPO format.' "$tmpdir/publish-repo.err"
+
 config_home="$tmpdir/config-home"
 mkdir -p "$config_home/virt-mic-paw"
 cat >"$config_home/virt-mic-paw/config.env" <<'EOF'
