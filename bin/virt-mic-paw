@@ -273,6 +273,9 @@ diag() {
   log "== pactl info =="
   pactl info || true
   log ""
+  log "== Module =="
+  pactl list short modules || true
+  log ""
   list_devices
   log ""
   status_mix || true

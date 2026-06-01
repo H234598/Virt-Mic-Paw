@@ -216,6 +216,9 @@ case "${1:-}" in
   get-default-source)
     printf '%s\n' "test_mic"
     ;;
+  info)
+    printf '%s\n' "Server Name: fake-pactl"
+    ;;
   list)
     case "${2:-} ${3:-}" in
       "short sources")
@@ -317,5 +320,11 @@ if PATH="$fakebin:$PATH" VMP_FAKE_PACTL_STATUS=module-only \
 fi
 grep -Fq 'application.name=virt-mic-paw' "$tmpdir/status-module-only.out"
 grep -Fxq 'Virtuelles Mikrofon nicht aktiv.' "$tmpdir/status-module-only.out"
+
+PATH="$fakebin:$PATH" VMP_FAKE_PACTL_STATUS=active \
+  bin/virt-mic-paw diag >"$tmpdir/diag-active.out"
+grep -Fxq '== Module ==' "$tmpdir/diag-active.out"
+grep -Fq 'application.name=virt-mic-paw' "$tmpdir/diag-active.out"
+grep -Fxq 'Server Name: fake-pactl' "$tmpdir/diag-active.out"
 
 echo "checks ok"
