@@ -174,8 +174,18 @@ unload_modules() {
 
 load_module() {
   local id
-  id="$(pactl load-module "$@")"
+  if ! id="$(pactl load-module "$@")"; then
+    return 1
+  fi
   printf '%s\n' "$id" >>"$STATE_FILE"
+}
+
+rollback_start_failure() {
+  local rc=$?
+  trap - ERR
+  warn "Start fehlgeschlagen. Räume teilweise geladene Module auf."
+  unload_modules
+  exit "$rc"
 }
 
 start_mix() {
@@ -186,6 +196,7 @@ start_mix() {
   unload_modules
   : >"$STATE_FILE"
   resolve_sources
+  trap rollback_start_failure ERR
 
   load_module module-null-sink \
     sink_name="$BUS_SINK" \
@@ -209,6 +220,8 @@ start_mix() {
     master="${BUS_SINK}.monitor" \
     source_name="$VIRT_SOURCE" \
     source_properties="device.description=$SOURCE_DESC application.name=$APP"
+
+  trap - ERR
 
   if [[ "$SET_DEFAULT_SOURCE" == "1" ]]; then
     pactl set-default-source "$VIRT_SOURCE" || warn "Konnte Default-Source nicht setzen."

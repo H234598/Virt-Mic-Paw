@@ -66,4 +66,81 @@ if XDG_CONFIG_HOME="$config_home" bin/virt-mic-paw start >/dev/null 2>"$tmpdir/c
 fi
 grep -Fxq 'ERROR: VMP_SET_DEFAULT_SOURCE muss 0 oder 1 sein.' "$tmpdir/config-default.err"
 
+fakebin="$tmpdir/fakebin"
+mkdir -p "$fakebin"
+cat >"$fakebin/pactl" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+log="${VMP_FAKE_PACTL_LOG:?}"
+case "${1:-}" in
+  get-default-sink)
+    printf '%s\n' "test_sink"
+    ;;
+  get-default-source)
+    printf '%s\n' "test_mic"
+    ;;
+  list)
+    case "${2:-} ${3:-}" in
+      "short sources")
+        printf '1\ttest_mic\n2\ttest_sink.monitor\n'
+        ;;
+      "short modules")
+        printf '\n'
+        ;;
+      *)
+        exit 2
+        ;;
+    esac
+    ;;
+  load-module)
+    printf 'load %s\n' "$2" >>"$log"
+    case "$2" in
+      module-null-sink) printf '101\n' ;;
+      module-loopback)
+        count_file="${VMP_FAKE_PACTL_COUNT:?}"
+        count=0
+        if [[ -f "$count_file" ]]; then
+          count="$(cat "$count_file")"
+        fi
+        count=$((count + 1))
+        printf '%s\n' "$count" >"$count_file"
+        printf '%s\n' "$((101 + count))"
+        ;;
+      module-remap-source)
+        exit 23
+        ;;
+      *)
+        exit 2
+        ;;
+    esac
+    ;;
+  unload-module)
+    printf 'unload %s\n' "$2" >>"$log"
+    ;;
+  *)
+    exit 2
+    ;;
+esac
+EOF
+chmod +x "$fakebin/pactl"
+
+fake_runtime="$tmpdir/runtime"
+mkdir -p "$fake_runtime"
+if PATH="$fakebin:$PATH" \
+  XDG_RUNTIME_DIR="$fake_runtime" \
+  VMP_FAKE_PACTL_LOG="$tmpdir/fake-pactl.log" \
+  VMP_FAKE_PACTL_COUNT="$tmpdir/fake-pactl.count" \
+  bin/virt-mic-paw start --no-default >/dev/null 2>"$tmpdir/start-rollback.err"; then
+  echo "start with failing remap unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq 'WARN: Start fehlgeschlagen. Räume teilweise geladene Module auf.' "$tmpdir/start-rollback.err"
+grep -Fxq 'unload 103' "$tmpdir/fake-pactl.log"
+grep -Fxq 'unload 102' "$tmpdir/fake-pactl.log"
+grep -Fxq 'unload 101' "$tmpdir/fake-pactl.log"
+if [[ -e "$fake_runtime/virt-mic-paw/modules" ]]; then
+  echo "state file remained after failed start rollback" >&2
+  exit 1
+fi
+
 echo "checks ok"
