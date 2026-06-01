@@ -6,6 +6,7 @@
 - Run ShellCheck on `tools/dev-check.sh` itself.
 - Rename the GitHub Actions workflow from `shellcheck` to `check`.
 - Limit GitHub Actions token permissions to read-only repository contents.
+- Add a 10-minute timeout to the GitHub Actions check job.
 
 ## 0.1.1 - 2026-06-01
 
