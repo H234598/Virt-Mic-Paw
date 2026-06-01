@@ -3,7 +3,7 @@ Version:        0.1.0
 Release:        1%{?dist}
 Summary:        Virtual mixed microphone for Fedora PipeWire/PulseAudio
 
-License:        MIT
+License:        AGPL-3.0-or-later
 URL:            https://github.com/H234598/Virt-Mic-Paw
 Source0:        %{name}-%{version}.tar.gz
 

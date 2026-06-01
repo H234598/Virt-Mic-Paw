@@ -12,33 +12,33 @@ _virt_mic_paw() {
   case "$prev" in
     --mic|--monitor)
       if command -v pactl >/dev/null 2>&1; then
-        COMPREPLY=( $(compgen -W "$(pactl list short sources 2>/dev/null | awk '{print $2}')" -- "$cur") )
+        mapfile -t COMPREPLY < <(compgen -W "$(pactl list short sources 2>/dev/null | awk '{print $2}')" -- "$cur")
       fi
       return 0
       ;;
     --sink)
       if command -v pactl >/dev/null 2>&1; then
-        COMPREPLY=( $(compgen -W "$(pactl list short sinks 2>/dev/null | awk '{print $2}')" -- "$cur") )
+        mapfile -t COMPREPLY < <(compgen -W "$(pactl list short sinks 2>/dev/null | awk '{print $2}')" -- "$cur")
       fi
       return 0
       ;;
     --latency)
-      COMPREPLY=( $(compgen -W "20 30 50 100" -- "$cur") )
+      mapfile -t COMPREPLY < <(compgen -W "20 30 50 100" -- "$cur")
       return 0
       ;;
   esac
 
   if [[ $COMP_CWORD -eq 1 ]]; then
-    COMPREPLY=( $(compgen -W "$commands" -- "$cur") )
+    mapfile -t COMPREPLY < <(compgen -W "$commands" -- "$cur")
     return 0
   fi
 
   case "${COMP_WORDS[1]}" in
     start|restart)
-      COMPREPLY=( $(compgen -W "$opts_start" -- "$cur") )
+      mapfile -t COMPREPLY < <(compgen -W "$opts_start" -- "$cur")
       ;;
     *)
-      COMPREPLY=( $(compgen -W "$opts_global" -- "$cur") )
+      mapfile -t COMPREPLY < <(compgen -W "$opts_global" -- "$cur")
       ;;
   esac
 }

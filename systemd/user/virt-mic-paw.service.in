@@ -6,8 +6,8 @@ Wants=pipewire-pulse.service wireplumber.service
 
 [Service]
 Type=oneshot
-ExecStart=%h/.local/bin/virt-mic-paw start
-ExecStop=%h/.local/bin/virt-mic-paw stop
+ExecStart=@BINDIR@/virt-mic-paw start
+ExecStop=@BINDIR@/virt-mic-paw stop
 RemainAfterExit=yes
 
 [Install]

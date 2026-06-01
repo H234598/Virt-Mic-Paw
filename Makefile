@@ -8,7 +8,9 @@ BASH_COMPLETION_DIR ?= $(DATADIR)/bash-completion/completions
 
 install:
 	install -Dm755 bin/virt-mic-paw "$(DESTDIR)$(BINDIR)/virt-mic-paw"
-	install -Dm644 systemd/user/virt-mic-paw.service.in "$(DESTDIR)$(SYSTEMD_USER_DIR)/virt-mic-paw.service"
+	install -d "$(DESTDIR)$(SYSTEMD_USER_DIR)"
+	awk -v bindir="$(BINDIR)" '{gsub(/@BINDIR@/, bindir)} {print}' systemd/user/virt-mic-paw.service.in >"$(DESTDIR)$(SYSTEMD_USER_DIR)/virt-mic-paw.service"
+	chmod 0644 "$(DESTDIR)$(SYSTEMD_USER_DIR)/virt-mic-paw.service"
 	install -Dm644 completions/virt-mic-paw.bash "$(DESTDIR)$(BASH_COMPLETION_DIR)/virt-mic-paw"
 	install -Dm644 README.md "$(DESTDIR)$(DATADIR)/doc/virt-mic-paw/README.md"
 	install -Dm644 docs/how-it-works.md "$(DESTDIR)$(DATADIR)/doc/virt-mic-paw/how-it-works.md"
@@ -24,5 +26,4 @@ uninstall:
 	rm -rf "$(DESTDIR)$(DATADIR)/licenses/virt-mic-paw"
 
 check:
-	bash -n bin/virt-mic-paw install.sh uninstall.sh tools/dev-check.sh tools/publish-github.sh
-	@command -v shellcheck >/dev/null 2>&1 && shellcheck bin/virt-mic-paw install.sh uninstall.sh tools/*.sh || echo "shellcheck not installed; skipped"
+	tools/dev-check.sh

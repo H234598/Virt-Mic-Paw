@@ -157,14 +157,18 @@ unload_modules() {
   mkdir -p "$STATE_DIR"
   if [[ -f "$STATE_FILE" ]]; then
     tac "$STATE_FILE" | while read -r id; do
-      [[ -n "${id:-}" ]] && pactl unload-module "$id" 2>/dev/null || true
+      if [[ -n "${id:-}" ]]; then
+        pactl unload-module "$id" 2>/dev/null || true
+      fi
     done
     rm -f "$STATE_FILE"
   fi
 
   # Aufräumen, falls ein vorheriger Lauf ohne State-Datei übrig blieb.
   pactl list short modules | awk -v a="$APP" '$0 ~ a {print $1}' | while read -r id; do
-    [[ -n "${id:-}" ]] && pactl unload-module "$id" 2>/dev/null || true
+    if [[ -n "${id:-}" ]]; then
+      pactl unload-module "$id" 2>/dev/null || true
+    fi
   done
 }
 
@@ -256,11 +260,19 @@ diag() {
   log ""
   log "== State =="
   log "STATE_FILE=$STATE_FILE"
-  [[ -f "$STATE_FILE" ]] && cat "$STATE_FILE" || log "Keine State-Datei."
+  if [[ -f "$STATE_FILE" ]]; then
+    cat "$STATE_FILE"
+  else
+    log "Keine State-Datei."
+  fi
   log ""
   log "== Config =="
   log "CONFIG_FILE=$CONFIG_FILE"
-  [[ -f "$CONFIG_FILE" ]] && cat "$CONFIG_FILE" || log "Keine Config-Datei."
+  if [[ -f "$CONFIG_FILE" ]]; then
+    cat "$CONFIG_FILE"
+  else
+    log "Keine Config-Datei."
+  fi
 }
 
 parse_start_args() {

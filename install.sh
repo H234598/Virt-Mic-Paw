@@ -34,6 +34,7 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BINDIR="$PREFIX/bin"
 SYSTEMD_USER_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+SYSTEMD_USER_SERVICE="$SYSTEMD_USER_DIR/virt-mic-paw.service"
 COMPLETION_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions"
 DOC_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/doc/virt-mic-paw"
 
@@ -42,7 +43,10 @@ command -v pactl >/dev/null 2>&1 || {
 }
 
 install -Dm755 "$SCRIPT_DIR/bin/virt-mic-paw" "$BINDIR/virt-mic-paw"
-install -Dm644 "$SCRIPT_DIR/systemd/user/virt-mic-paw.service.in" "$SYSTEMD_USER_DIR/virt-mic-paw.service"
+install -d "$SYSTEMD_USER_DIR"
+awk -v bindir="$BINDIR" '{gsub(/@BINDIR@/, bindir)} {print}' \
+  "$SCRIPT_DIR/systemd/user/virt-mic-paw.service.in" >"$SYSTEMD_USER_SERVICE"
+chmod 0644 "$SYSTEMD_USER_SERVICE"
 install -Dm644 "$SCRIPT_DIR/completions/virt-mic-paw.bash" "$COMPLETION_DIR/virt-mic-paw"
 install -Dm644 "$SCRIPT_DIR/README.md" "$DOC_DIR/README.md"
 install -Dm644 "$SCRIPT_DIR/docs/how-it-works.md" "$DOC_DIR/how-it-works.md"
