@@ -31,6 +31,7 @@
 - Reject invalid `pactl load-module` IDs before writing runtime state.
 - Skip invalid module IDs from corrupted runtime state during `stop`.
 - Create private config files and reject group- or world-writable `config.env`.
+- Reject `config.env` files that are not owned by the current user.
 
 ## 0.1.0 - 2026-06-01
 

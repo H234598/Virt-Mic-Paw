@@ -228,6 +228,38 @@ fi
 grep -Fxq "ERROR: Konfiguration ist gruppen- oder welt-schreibbar: $insecure_config_home/virt-mic-paw/config.env" \
   "$tmpdir/config-insecure.err"
 
+wrong_owner_config_home="$tmpdir/wrong-owner-config-home"
+mkdir -p "$wrong_owner_config_home/virt-mic-paw"
+cat >"$wrong_owner_config_home/virt-mic-paw/config.env" <<'EOF'
+VMP_SET_DEFAULT_SOURCE="1"
+EOF
+wrong_owner_path="$tmpdir/wrong-owner-path"
+mkdir -p "$wrong_owner_path"
+cat >"$wrong_owner_path/stat" <<EOF
+#!/usr/bin/env bash
+if [[ "\$*" == "-c %u %a $wrong_owner_config_home/virt-mic-paw/config.env" ]]; then
+  printf '%s\n' '0 600'
+else
+  exec /usr/bin/stat "\$@"
+fi
+EOF
+cat >"$wrong_owner_path/id" <<'EOF'
+#!/usr/bin/env bash
+if [[ "${1:-}" == "-u" ]]; then
+  printf '%s\n' '1000'
+else
+  exec /usr/bin/id "$@"
+fi
+EOF
+chmod +x "$wrong_owner_path/stat" "$wrong_owner_path/id"
+if PATH="$wrong_owner_path:$PATH" XDG_CONFIG_HOME="$wrong_owner_config_home" \
+  bin/virt-mic-paw version >/dev/null 2>"$tmpdir/config-wrong-owner.err"; then
+  echo "wrong-owner config unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq "ERROR: Konfiguration gehört nicht dem aktuellen Nutzer: $wrong_owner_config_home/virt-mic-paw/config.env" \
+  "$tmpdir/config-wrong-owner.err"
+
 default_config_home="$tmpdir/default-config-home"
 XDG_CONFIG_HOME="$default_config_home" bin/virt-mic-paw config >"$tmpdir/config-create.out"
 grep -Fxq "Konfiguration erstellt: $default_config_home/virt-mic-paw/config.env" \
