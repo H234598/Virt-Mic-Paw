@@ -16,11 +16,21 @@ Default prefix:
 EOF
 }
 
+require_option_value() {
+  local option="$1" value="$2"
+  if [[ -z "$value" || "$value" == --* ]]; then
+    echo "ERROR: $option benötigt einen Wert." >&2
+    exit 2
+  fi
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --enable) ENABLE="1"; shift ;;
     --no-enable) ENABLE="0"; shift ;;
-    --prefix) PREFIX="${2:-}"; shift 2 ;;
+    --prefix)
+      require_option_value "$1" "${2:-}"
+      PREFIX="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage; exit 2 ;;
   esac

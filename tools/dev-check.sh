@@ -39,4 +39,10 @@ if bin/virt-mic-paw start --latency 0 >/dev/null 2>"$tmpdir/latency.err"; then
 fi
 grep -Fxq 'ERROR: --latency muss mindestens 1 Millisekunde sein.' "$tmpdir/latency.err"
 
+if ./install.sh --prefix >/dev/null 2>"$tmpdir/install-prefix.err"; then
+  echo "missing install --prefix argument unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq 'ERROR: --prefix benötigt einen Wert.' "$tmpdir/install-prefix.err"
+
 echo "checks ok"
