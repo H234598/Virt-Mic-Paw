@@ -49,6 +49,27 @@ grep -Fxq "## $script_version - 2026-06-01" CHANGELOG.md
 grep -Fxq "virt-mic-paw $script_version" < <(bin/virt-mic-paw version)
 grep -Fxq "virt-mic-paw $script_version" < <(bin/virt-mic-paw --version)
 
+completion_commands="$(
+  COMP_WORDS=(virt-mic-paw ver)
+  COMP_CWORD=1
+  # shellcheck source=/dev/null
+  source completions/virt-mic-paw.bash
+  _virt_mic_paw
+  printf '%s\n' "${COMPREPLY[@]}"
+)"
+grep -Fxq 'version' <<<"$completion_commands"
+
+completion_start_opts="$(
+  COMP_WORDS=(virt-mic-paw start --)
+  COMP_CWORD=2
+  # shellcheck source=/dev/null
+  source completions/virt-mic-paw.bash
+  _virt_mic_paw
+  printf '%s\n' "${COMPREPLY[@]}"
+)"
+grep -Fxq -- '--monitor' <<<"$completion_start_opts"
+grep -Fxq -- '--no-default' <<<"$completion_start_opts"
+
 if bin/virt-mic-paw start --mic >/dev/null 2>"$tmpdir/missing-arg.err"; then
   echo "missing --mic argument unexpectedly succeeded" >&2
   exit 1
