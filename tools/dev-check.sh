@@ -427,6 +427,19 @@ fi
 grep -Fxq "ERROR: State-Verzeichnis darf kein Symlink sein: $state_symlink_runtime/virt-mic-paw" \
   "$tmpdir/state-symlink.err"
 
+state_file_symlink_runtime="$tmpdir/state-file-symlink-runtime"
+mkdir -p "$state_file_symlink_runtime/virt-mic-paw"
+chmod 0700 "$state_file_symlink_runtime/virt-mic-paw"
+touch "$tmpdir/state-file-symlink-target"
+ln -s "$tmpdir/state-file-symlink-target" "$state_file_symlink_runtime/virt-mic-paw/modules"
+if PATH="$fakebin:$PATH" XDG_RUNTIME_DIR="$state_file_symlink_runtime" \
+  bin/virt-mic-paw stop >/dev/null 2>"$tmpdir/state-file-symlink.err"; then
+  echo "symlink state file unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq "ERROR: State-Datei darf kein Symlink sein: $state_file_symlink_runtime/virt-mic-paw/modules" \
+  "$tmpdir/state-file-symlink.err"
+
 start_runtime="$tmpdir/start-runtime"
 mkdir -p "$start_runtime"
 PATH="$fakebin:$PATH" \
@@ -443,6 +456,11 @@ grep -Fxq '101' "$start_runtime/virt-mic-paw/modules"
 grep -Fxq '102' "$start_runtime/virt-mic-paw/modules"
 grep -Fxq '103' "$start_runtime/virt-mic-paw/modules"
 grep -Fxq '104' "$start_runtime/virt-mic-paw/modules"
+state_file_mode="$(stat -c '%a' "$start_runtime/virt-mic-paw/modules")"
+if [[ "$state_file_mode" != "600" ]]; then
+  echo "runtime state file mode was $state_file_mode, expected 600" >&2
+  exit 1
+fi
 state_dir_mode="$(stat -c '%a' "$start_runtime/virt-mic-paw")"
 if [[ "$state_dir_mode" != "700" ]]; then
   echo "runtime state directory mode was $state_dir_mode, expected 700" >&2
