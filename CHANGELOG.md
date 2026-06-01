@@ -11,6 +11,7 @@
 - Validate conflicting sink/monitor configuration and invalid `VMP_SET_DEFAULT_SOURCE` values.
 - Roll back partially loaded PulseAudio modules when startup fails midway.
 - Run CI checks through the public `make check` target.
+- Declare `make` as an RPM build dependency and check key spec metadata in development checks.
 
 ## 0.1.0 - 2026-06-01
 

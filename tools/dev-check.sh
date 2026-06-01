@@ -21,6 +21,10 @@ if grep -Fq '@BINDIR@' "$service_file"; then
   exit 1
 fi
 
+grep -Fxq 'BuildRequires:  make' packaging/virt-mic-paw.spec
+grep -Fxq 'Requires:       pulseaudio-utils' packaging/virt-mic-paw.spec
+grep -Fxq 'License:        AGPL-3.0-or-later' packaging/virt-mic-paw.spec
+
 if bin/virt-mic-paw start --mic >/dev/null 2>"$tmpdir/missing-arg.err"; then
   echo "missing --mic argument unexpectedly succeeded" >&2
   exit 1

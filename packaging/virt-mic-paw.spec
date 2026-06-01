@@ -8,6 +8,7 @@ URL:            https://github.com/H234598/Virt-Mic-Paw
 Source0:        %{name}-%{version}.tar.gz
 
 BuildArch:      noarch
+BuildRequires:  make
 Requires:       bash
 Requires:       pulseaudio-utils
 Requires:       systemd
