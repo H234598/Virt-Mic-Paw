@@ -20,6 +20,20 @@ if grep -Fq '@BINDIR@' "$service_file"; then
   echo "service template placeholder was not rendered" >&2
   exit 1
 fi
+test -x "$tmpdir/root/usr/bin/virt-mic-paw"
+test -f "$tmpdir/root/usr/share/bash-completion/completions/virt-mic-paw"
+test -f "$tmpdir/root/usr/share/doc/virt-mic-paw/README.md"
+test -f "$tmpdir/root/usr/share/licenses/virt-mic-paw/LICENSE"
+
+make uninstall DESTDIR="$tmpdir/root" PREFIX=/usr >/dev/null
+if [[ -e "$tmpdir/root/usr/bin/virt-mic-paw" \
+  || -e "$service_file" \
+  || -e "$tmpdir/root/usr/share/bash-completion/completions/virt-mic-paw" \
+  || -e "$tmpdir/root/usr/share/doc/virt-mic-paw" \
+  || -e "$tmpdir/root/usr/share/licenses/virt-mic-paw" ]]; then
+  echo "make uninstall left installed artifacts behind" >&2
+  exit 1
+fi
 
 grep -Fxq 'BuildRequires:  make' packaging/virt-mic-paw.spec
 grep -Fxq 'Requires:       pulseaudio-utils' packaging/virt-mic-paw.spec
