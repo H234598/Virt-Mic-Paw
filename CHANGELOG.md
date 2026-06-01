@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Run `git diff --check` as part of development checks when inside a Git worktree.
+- Run ShellCheck on `tools/dev-check.sh` itself.
 
 ## 0.1.1 - 2026-06-01
 
