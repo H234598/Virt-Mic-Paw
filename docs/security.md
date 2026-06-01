@@ -34,3 +34,6 @@ pavucontrol
 Runtime module IDs are stored in a user-owned private state directory. If
 `XDG_RUNTIME_DIR` is unavailable, Virt-Mic-Paw uses a UID-specific directory
 below `/tmp` instead of a shared global path.
+
+Config and runtime state paths are rejected when they are symlinks, because the
+config file is sourced by the shell and state files control module cleanup.

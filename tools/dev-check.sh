@@ -288,6 +288,22 @@ fi
 grep -Fxq "ERROR: Konfiguration gehört nicht dem aktuellen Nutzer: $wrong_owner_config_home/virt-mic-paw/config.env" \
   "$tmpdir/config-wrong-owner.err"
 
+symlink_config_home="$tmpdir/symlink-config-home"
+mkdir -p "$symlink_config_home/virt-mic-paw"
+chmod 0700 "$symlink_config_home/virt-mic-paw"
+cat >"$symlink_config_home/target.env" <<'EOF'
+VMP_SET_DEFAULT_SOURCE="1"
+EOF
+chmod 0600 "$symlink_config_home/target.env"
+ln -s "$symlink_config_home/target.env" "$symlink_config_home/virt-mic-paw/config.env"
+if XDG_CONFIG_HOME="$symlink_config_home" bin/virt-mic-paw version \
+  >/dev/null 2>"$tmpdir/config-symlink.err"; then
+  echo "symlink config unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq "ERROR: Konfiguration darf kein Symlink sein: $symlink_config_home/virt-mic-paw/config.env" \
+  "$tmpdir/config-symlink.err"
+
 default_config_home="$tmpdir/default-config-home"
 XDG_CONFIG_HOME="$default_config_home" bin/virt-mic-paw config >"$tmpdir/config-create.out"
 grep -Fxq "Konfiguration erstellt: $default_config_home/virt-mic-paw/config.env" \
@@ -399,6 +415,17 @@ case "${1:-}" in
 esac
 EOF
 chmod +x "$fakebin/pactl"
+
+state_symlink_runtime="$tmpdir/state-symlink-runtime"
+mkdir -p "$state_symlink_runtime" "$tmpdir/state-symlink-target"
+ln -s "$tmpdir/state-symlink-target" "$state_symlink_runtime/virt-mic-paw"
+if PATH="$fakebin:$PATH" XDG_RUNTIME_DIR="$state_symlink_runtime" \
+  bin/virt-mic-paw stop >/dev/null 2>"$tmpdir/state-symlink.err"; then
+  echo "symlink state directory unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq "ERROR: State-Verzeichnis darf kein Symlink sein: $state_symlink_runtime/virt-mic-paw" \
+  "$tmpdir/state-symlink.err"
 
 start_runtime="$tmpdir/start-runtime"
 mkdir -p "$start_runtime"
