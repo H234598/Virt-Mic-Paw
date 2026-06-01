@@ -195,6 +195,7 @@ grep -Fxq 'repo must be in OWNER/REPO format.' "$tmpdir/publish-repo.err"
 
 config_home="$tmpdir/config-home"
 mkdir -p "$config_home/virt-mic-paw"
+chmod 0700 "$config_home/virt-mic-paw"
 cat >"$config_home/virt-mic-paw/config.env" <<'EOF'
 VMP_SINK="out"
 VMP_MONITOR_SOURCE="out.monitor"
@@ -218,6 +219,7 @@ grep -Fxq 'ERROR: VMP_SET_DEFAULT_SOURCE muss 0 oder 1 sein.' "$tmpdir/config-de
 
 insecure_config_home="$tmpdir/insecure-config-home"
 mkdir -p "$insecure_config_home/virt-mic-paw"
+chmod 0700 "$insecure_config_home/virt-mic-paw"
 cat >"$insecure_config_home/virt-mic-paw/config.env" <<'EOF'
 VMP_SET_DEFAULT_SOURCE="1"
 EOF
@@ -247,6 +249,7 @@ grep -Fxq "ERROR: Config-Verzeichnis ist gruppen- oder welt-schreibbar: $insecur
 
 wrong_owner_config_home="$tmpdir/wrong-owner-config-home"
 mkdir -p "$wrong_owner_config_home/virt-mic-paw"
+chmod 0700 "$wrong_owner_config_home/virt-mic-paw"
 cat >"$wrong_owner_config_home/virt-mic-paw/config.env" <<'EOF'
 VMP_SET_DEFAULT_SOURCE="1"
 EOF
