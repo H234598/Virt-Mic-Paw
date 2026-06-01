@@ -246,6 +246,8 @@ case "${1:-}" in
       "short modules")
         if [[ "${VMP_FAKE_PACTL_STATUS:-}" == "active" || "${VMP_FAKE_PACTL_STATUS:-}" == "module-only" ]]; then
           printf '10\tmodule-null-sink\tapplication.name=virt-mic-paw\n'
+        elif [[ "${VMP_FAKE_PACTL_STATUS:-}" == "module-substring" ]]; then
+          printf '10\tmodule-null-sink\tapplication.name=notvirt-mic-paw\n'
         else
           printf '\n'
         fi
@@ -340,6 +342,17 @@ if PATH="$fakebin:$PATH" VMP_FAKE_PACTL_STATUS=source-substring \
   exit 1
 fi
 grep -Fxq 'Virtuelles Mikrofon nicht aktiv.' "$tmpdir/status-source-substring.out"
+
+PATH="$fakebin:$PATH" \
+  XDG_RUNTIME_DIR="$tmpdir/stop-runtime" \
+  VMP_FAKE_PACTL_STATUS=module-substring \
+  VMP_FAKE_PACTL_LOG="$tmpdir/stop-module-substring.log" \
+  bin/virt-mic-paw stop >/dev/null
+if [[ -s "$tmpdir/stop-module-substring.log" ]]; then
+  echo "stop unloaded a non-matching application.name module" >&2
+  cat "$tmpdir/stop-module-substring.log" >&2
+  exit 1
+fi
 
 PATH="$fakebin:$PATH" VMP_FAKE_PACTL_STATUS=active \
   bin/virt-mic-paw diag >"$tmpdir/diag-active.out"

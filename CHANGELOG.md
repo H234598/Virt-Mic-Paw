@@ -26,6 +26,7 @@
 - Include loaded PulseAudio modules in `diag` output.
 - Document and complete the `--version` alias consistently.
 - Match the virtual source exactly in `status` instead of accepting substring matches.
+- Match PulseAudio module ownership exactly before reporting or cleaning modules.
 
 ## 0.1.0 - 2026-06-01
 

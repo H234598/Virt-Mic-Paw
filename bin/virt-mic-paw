@@ -172,7 +172,16 @@ unload_modules() {
   fi
 
   # Aufräumen, falls ein vorheriger Lauf ohne State-Datei übrig blieb.
-  pactl list short modules | awk -v a="$APP" '$0 ~ a {print $1}' | while read -r id; do
+  pactl list short modules | awk -v app="application.name=$APP" '
+    {
+      for (i = 1; i <= NF; i++) {
+        if ($i == app) {
+          print $1
+          next
+        }
+      }
+    }
+  ' | while read -r id; do
     if [[ -n "${id:-}" ]]; then
       pactl unload-module "$id" 2>/dev/null || true
     fi
@@ -251,7 +260,18 @@ status_mix() {
   need_cmd pactl
   local source_found=0
   log "== Virt-Mic-Paw Module =="
-  if pactl list short modules | grep -F "$APP"; then
+  if pactl list short modules | awk -v app="application.name=$APP" '
+    {
+      for (i = 1; i <= NF; i++) {
+        if ($i == app) {
+          print
+          found=1
+          break
+        }
+      }
+    }
+    END {exit found ? 0 : 1}
+  '; then
     :
   else
     log "Keine Virt-Mic-Paw-Module gefunden."
