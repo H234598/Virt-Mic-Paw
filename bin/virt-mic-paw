@@ -35,6 +35,7 @@ Usage:
   virt-mic-paw config
   virt-mic-paw diag
   virt-mic-paw version
+  virt-mic-paw --version
   virt-mic-paw help
 
 Beispiele:

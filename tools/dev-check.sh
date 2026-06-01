@@ -48,6 +48,7 @@ fi
 grep -Fxq "## $script_version - 2026-06-01" CHANGELOG.md
 grep -Fxq "virt-mic-paw $script_version" < <(bin/virt-mic-paw version)
 grep -Fxq "virt-mic-paw $script_version" < <(bin/virt-mic-paw --version)
+grep -Fxq '  virt-mic-paw --version' < <(bin/virt-mic-paw help)
 
 completion_commands="$(
   COMP_WORDS=(virt-mic-paw ver)
@@ -58,6 +59,16 @@ completion_commands="$(
   printf '%s\n' "${COMPREPLY[@]}"
 )"
 grep -Fxq 'version' <<<"$completion_commands"
+
+completion_global_opts="$(
+  COMP_WORDS=(virt-mic-paw --)
+  COMP_CWORD=1
+  # shellcheck source=/dev/null
+  source completions/virt-mic-paw.bash
+  _virt_mic_paw
+  printf '%s\n' "${COMPREPLY[@]}"
+)"
+grep -Fxq -- '--version' <<<"$completion_global_opts"
 
 completion_start_opts="$(
   COMP_WORDS=(virt-mic-paw start --)

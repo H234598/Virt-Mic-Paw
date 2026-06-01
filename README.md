@@ -72,6 +72,7 @@ Version anzeigen:
 
 ```bash
 virt-mic-paw version
+virt-mic-paw --version
 ```
 
 Stoppen:

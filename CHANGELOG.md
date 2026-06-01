@@ -24,6 +24,7 @@
 - Validate `tools/publish-github.sh` repository arguments before writing Git remotes.
 - Report a clear installer error when `systemctl --user enable --now` fails.
 - Include loaded PulseAudio modules in `diag` output.
+- Document and complete the `--version` alias consistently.
 
 ## 0.1.0 - 2026-06-01
 

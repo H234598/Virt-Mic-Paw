@@ -7,7 +7,7 @@ _virt_mic_paw() {
   prev="${COMP_WORDS[COMP_CWORD-1]}"
   commands="start stop restart status list config diag version help"
   opts_start="--mic --sink --monitor --latency --no-default --help"
-  opts_global="--help"
+  opts_global="--help --version"
 
   case "$prev" in
     --mic|--monitor)
@@ -29,7 +29,7 @@ _virt_mic_paw() {
   esac
 
   if [[ $COMP_CWORD -eq 1 ]]; then
-    mapfile -t COMPREPLY < <(compgen -W "$commands" -- "$cur")
+    mapfile -t COMPREPLY < <(compgen -W "$commands $opts_global" -- "$cur")
     return 0
   fi
 
