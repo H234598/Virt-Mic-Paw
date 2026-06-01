@@ -39,8 +39,15 @@ grep -Fxq 'BuildRequires:  make' packaging/virt-mic-paw.spec
 grep -Fxq 'Requires:       pulseaudio-utils' packaging/virt-mic-paw.spec
 grep -Fxq 'License:        AGPL-3.0-or-later' packaging/virt-mic-paw.spec
 
-grep -Fxq 'virt-mic-paw 0.1.0' < <(bin/virt-mic-paw version)
-grep -Fxq 'virt-mic-paw 0.1.0' < <(bin/virt-mic-paw --version)
+script_version="$(sed -n 's/^VERSION="\([^"]*\)"$/\1/p' bin/virt-mic-paw)"
+spec_version="$(awk '$1 == "Version:" {print $2; exit}' packaging/virt-mic-paw.spec)"
+if [[ -z "$script_version" || "$script_version" != "$spec_version" ]]; then
+  echo "version mismatch between CLI and RPM spec" >&2
+  exit 1
+fi
+grep -Fxq "## $script_version - 2026-06-01" CHANGELOG.md
+grep -Fxq "virt-mic-paw $script_version" < <(bin/virt-mic-paw version)
+grep -Fxq "virt-mic-paw $script_version" < <(bin/virt-mic-paw --version)
 
 if bin/virt-mic-paw start --mic >/dev/null 2>"$tmpdir/missing-arg.err"; then
   echo "missing --mic argument unexpectedly succeeded" >&2

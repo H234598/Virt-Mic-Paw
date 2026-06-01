@@ -15,6 +15,7 @@
 - Add `uninstall.sh --prefix` support matching the installer.
 - Add a `make uninstall` smoke test for installed files, service, completion, docs and license paths.
 - Add `virt-mic-paw version` and `--version` output.
+- Check version consistency across CLI, RPM spec and changelog.
 
 ## 0.1.0 - 2026-06-01
 
