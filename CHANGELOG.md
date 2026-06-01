@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Run `git diff --check` as part of development checks when inside a Git worktree.
+
 ## 0.1.1 - 2026-06-01
 
 - Render the systemd user service from the selected install prefix instead of hard-coding `~/.local/bin`.
