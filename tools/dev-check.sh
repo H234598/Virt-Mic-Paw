@@ -416,6 +416,11 @@ grep -Fxq '101' "$start_runtime/virt-mic-paw/modules"
 grep -Fxq '102' "$start_runtime/virt-mic-paw/modules"
 grep -Fxq '103' "$start_runtime/virt-mic-paw/modules"
 grep -Fxq '104' "$start_runtime/virt-mic-paw/modules"
+state_dir_mode="$(stat -c '%a' "$start_runtime/virt-mic-paw")"
+if [[ "$state_dir_mode" != "700" ]]; then
+  echo "runtime state directory mode was $state_dir_mode, expected 700" >&2
+  exit 1
+fi
 
 bad_id_runtime="$tmpdir/bad-id-runtime"
 mkdir -p "$bad_id_runtime"

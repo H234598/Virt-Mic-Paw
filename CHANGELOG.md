@@ -10,6 +10,7 @@
 - Cancel superseded GitHub Actions check runs on the same ref.
 - Stop printing raw `config.env` contents in `diag` output.
 - Create the Virt-Mic-Paw config directory with private permissions.
+- Create the runtime state directory with private permissions and use a UID-specific `/tmp` fallback.
 
 ## 0.1.1 - 2026-06-01
 

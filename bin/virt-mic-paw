@@ -7,7 +7,14 @@ BUS_SINK="virtmicpaw_bus"
 VIRT_SOURCE="virtmicpaw"
 BUS_DESC="Virt-Mic-Paw Mix-Bus"
 SOURCE_DESC="Virt-Mic-Paw-Mixed-Microphone"
-STATE_DIR="${XDG_RUNTIME_DIR:-/tmp}/virt-mic-paw"
+STATE_FALLBACK_BASE=0
+if [[ -n "${XDG_RUNTIME_DIR:-}" ]]; then
+  STATE_BASE_DIR="$XDG_RUNTIME_DIR"
+else
+  STATE_FALLBACK_BASE=1
+  STATE_BASE_DIR="/tmp/virt-mic-paw-${UID:-$(id -u)}"
+fi
+STATE_DIR="$STATE_BASE_DIR/virt-mic-paw"
 STATE_FILE="$STATE_DIR/modules"
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/virt-mic-paw"
 CONFIG_FILE="$CONFIG_DIR/config.env"
@@ -131,6 +138,17 @@ EOF
   log "Konfiguration erstellt: $CONFIG_FILE"
 }
 
+ensure_state_dir() {
+  if [[ "$STATE_FALLBACK_BASE" -eq 1 ]]; then
+    mkdir -p "$STATE_BASE_DIR"
+    chmod 0700 "$STATE_BASE_DIR"
+    validate_owned_not_writable "$STATE_BASE_DIR" "State-Basisverzeichnis"
+  fi
+  mkdir -p "$STATE_DIR"
+  chmod 0700 "$STATE_DIR"
+  validate_owned_not_writable "$STATE_DIR" "State-Verzeichnis"
+}
+
 list_devices() {
   need_cmd pactl
   log "== Sinks/Ausgaben =="
@@ -192,7 +210,7 @@ resolve_sources() {
 }
 
 unload_modules() {
-  mkdir -p "$STATE_DIR"
+  ensure_state_dir
   if [[ -f "$STATE_FILE" ]]; then
     tac "$STATE_FILE" | while read -r id; do
       if [[ "$id" =~ ^[0-9]+$ ]]; then
@@ -243,7 +261,7 @@ rollback_start_failure() {
 
 start_mix() {
   need_cmd pactl
-  mkdir -p "$STATE_DIR"
+  ensure_state_dir
   : >"$STATE_FILE"
 
   unload_modules

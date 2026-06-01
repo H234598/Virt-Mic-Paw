@@ -28,3 +28,9 @@ systemctl --user stop virt-mic-paw.service
 virt-mic-paw status
 pavucontrol
 ```
+
+## Local state
+
+Runtime module IDs are stored in a user-owned private state directory. If
+`XDG_RUNTIME_DIR` is unavailable, Virt-Mic-Paw uses a UID-specific directory
+below `/tmp` instead of a shared global path.
