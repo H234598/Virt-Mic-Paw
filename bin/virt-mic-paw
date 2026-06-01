@@ -193,6 +193,10 @@ load_module() {
   if ! id="$(pactl load-module "$@")"; then
     return 1
   fi
+  if ! [[ "$id" =~ ^[0-9]+$ ]]; then
+    err "pactl load-module lieferte keine gültige Modul-ID für $1."
+    return 1
+  fi
   printf '%s\n' "$id" >>"$STATE_FILE"
 }
 

@@ -263,7 +263,13 @@ case "${1:-}" in
     fi
     printf 'load %s\n' "$2" >>"$log"
     case "$2" in
-      module-null-sink) printf '101\n' ;;
+      module-null-sink)
+        if [[ "${VMP_FAKE_PACTL_BAD_ID:-}" == "empty" ]]; then
+          printf '\n'
+        else
+          printf '101\n'
+        fi
+        ;;
       module-loopback)
         count_file="${VMP_FAKE_PACTL_COUNT:?}"
         count=0
@@ -321,6 +327,25 @@ grep -Fxq '101' "$start_runtime/virt-mic-paw/modules"
 grep -Fxq '102' "$start_runtime/virt-mic-paw/modules"
 grep -Fxq '103' "$start_runtime/virt-mic-paw/modules"
 grep -Fxq '104' "$start_runtime/virt-mic-paw/modules"
+
+bad_id_runtime="$tmpdir/bad-id-runtime"
+mkdir -p "$bad_id_runtime"
+if PATH="$fakebin:$PATH" \
+  XDG_RUNTIME_DIR="$bad_id_runtime" \
+  VMP_FAKE_PACTL_LOG="$tmpdir/bad-id-pactl.log" \
+  VMP_FAKE_PACTL_BAD_ID=empty \
+  bin/virt-mic-paw start >"$tmpdir/bad-id.out" 2>"$tmpdir/bad-id.err"; then
+  echo "start with empty module id unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq 'ERROR: pactl load-module lieferte keine gültige Modul-ID für module-null-sink.' \
+  "$tmpdir/bad-id.err"
+grep -Fxq 'WARN: Start fehlgeschlagen. Räume teilweise geladene Module auf.' "$tmpdir/bad-id.err"
+if [[ -s "$bad_id_runtime/virt-mic-paw/modules" ]]; then
+  echo "state file contains an invalid module id" >&2
+  cat "$bad_id_runtime/virt-mic-paw/modules" >&2
+  exit 1
+fi
 
 fake_runtime="$tmpdir/runtime"
 mkdir -p "$fake_runtime"

@@ -28,6 +28,7 @@
 - Match the virtual source exactly in `status` instead of accepting substring matches.
 - Match PulseAudio module ownership exactly before reporting or cleaning modules.
 - Add a fake-`pactl` smoke test for a successful `start` run.
+- Reject invalid `pactl load-module` IDs before writing runtime state.
 
 ## 0.1.0 - 2026-06-01
 
