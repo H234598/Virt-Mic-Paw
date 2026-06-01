@@ -233,9 +233,9 @@ Die Datei `packaging/virt-mic-paw.spec` ist vorbereitet.
 Grob:
 
 ```bash
-git archive --format=tar.gz --prefix=virt-mic-paw-0.1.0/ -o virt-mic-paw-0.1.0.tar.gz HEAD
+git archive --format=tar.gz --prefix=virt-mic-paw-0.1.1/ -o virt-mic-paw-0.1.1.tar.gz HEAD
 mkdir -p ~/rpmbuild/SOURCES ~/rpmbuild/SPECS
-cp virt-mic-paw-0.1.0.tar.gz ~/rpmbuild/SOURCES/
+cp virt-mic-paw-0.1.1.tar.gz ~/rpmbuild/SOURCES/
 cp packaging/virt-mic-paw.spec ~/rpmbuild/SPECS/
 rpmbuild -ba ~/rpmbuild/SPECS/virt-mic-paw.spec
 ```

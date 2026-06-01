@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.1 - 2026-06-01
+
 - Render the systemd user service from the selected install prefix instead of hard-coding `~/.local/bin`.
 - Add an install smoke test to the development checks for the generated systemd service.
 - Correct the RPM license metadata to `AGPL-3.0-or-later`.

@@ -1,5 +1,5 @@
 Name:           virt-mic-paw
-Version:        0.1.0
+Version:        0.1.1
 Release:        1%{?dist}
 Summary:        Virtual mixed microphone for Fedora PipeWire/PulseAudio
 
@@ -35,5 +35,8 @@ using PipeWire with PulseAudio compatibility.
 %{_datadir}/bash-completion/completions/virt-mic-paw
 
 %changelog
+* Mon Jun 01 2026 H234598 <noreply@example.com> - 0.1.1-1
+- Harden runtime cleanup, config loading and development checks
+
 * Mon Jun 01 2026 H234598 <noreply@example.com> - 0.1.0-1
 - Initial package

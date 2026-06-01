@@ -48,6 +48,9 @@ if [[ -z "$script_version" || "$script_version" != "$spec_version" ]]; then
   exit 1
 fi
 grep -Fxq "## $script_version - 2026-06-01" CHANGELOG.md
+grep -Fxq "* Mon Jun 01 2026 H234598 <noreply@example.com> - $script_version-1" \
+  packaging/virt-mic-paw.spec
+grep -Fq "virt-mic-paw-$script_version.tar.gz" README.md
 grep -Fxq "virt-mic-paw $script_version" < <(bin/virt-mic-paw version)
 grep -Fxq "virt-mic-paw $script_version" < <(bin/virt-mic-paw --version)
 grep -Fxq '  virt-mic-paw --version' < <(bin/virt-mic-paw help)

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP="virt-mic-paw"
-VERSION="0.1.0"
+VERSION="0.1.1"
 BUS_SINK="virtmicpaw_bus"
 VIRT_SOURCE="virtmicpaw"
 BUS_DESC="Virt-Mic-Paw Mix-Bus"
