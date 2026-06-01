@@ -106,6 +106,35 @@ fi
 grep -Fxq 'ERROR: pactl nicht gefunden; --enable kann den Dienst nicht zuverlässig starten.' \
   "$tmpdir/install-enable-no-pactl.err"
 
+for cmd in awk cat chmod env install mkdir pwd; do
+  ln -s "$(command -v "$cmd")" "$no_pactl_path/$cmd"
+done
+cat >"$no_pactl_path/systemctl" <<'EOF'
+#!/usr/bin/env bash
+exit 0
+EOF
+chmod +x "$no_pactl_path/systemctl"
+
+no_enable_home="$tmpdir/no-enable-home"
+mkdir -p "$no_enable_home/config" "$no_enable_home/data"
+if ! PATH="$no_pactl_path" \
+  HOME="$no_enable_home/home" \
+  XDG_CONFIG_HOME="$no_enable_home/config" \
+  XDG_DATA_HOME="$no_enable_home/data" \
+  ./install.sh --no-enable --prefix "$tmpdir/no-enable-prefix" \
+  >"$tmpdir/install-no-enable-no-pactl.out" 2>"$tmpdir/install-no-enable-no-pactl.err"; then
+  echo "install --no-enable without pactl unexpectedly failed" >&2
+  cat "$tmpdir/install-no-enable-no-pactl.err" >&2
+  exit 1
+fi
+grep -Fxq 'WARN: pactl nicht gefunden. Auf Fedora: sudo dnf install pulseaudio-utils' \
+  "$tmpdir/install-no-enable-no-pactl.err"
+grep -Fxq 'Virt-Mic-Paw installiert. Starte mit: virt-mic-paw start' \
+  "$tmpdir/install-no-enable-no-pactl.out"
+test -x "$tmpdir/no-enable-prefix/bin/virt-mic-paw"
+test -f "$no_enable_home/config/systemd/user/virt-mic-paw.service"
+test -f "$no_enable_home/data/bash-completion/completions/virt-mic-paw"
+
 if ./uninstall.sh --prefix >/dev/null 2>"$tmpdir/uninstall-prefix.err"; then
   echo "missing uninstall --prefix argument unexpectedly succeeded" >&2
   exit 1
