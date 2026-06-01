@@ -48,9 +48,15 @@ SYSTEMD_USER_SERVICE="$SYSTEMD_USER_DIR/virt-mic-paw.service"
 COMPLETION_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions"
 DOC_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/doc/virt-mic-paw"
 
-command -v pactl >/dev/null 2>&1 || {
+if ! command -v pactl >/dev/null 2>&1; then
+  if [[ "$ENABLE" == "1" ]]; then
+    echo "ERROR: pactl nicht gefunden; --enable kann den Dienst nicht zuverlässig starten." >&2
+    echo "Installiere auf Fedora: sudo dnf install pulseaudio-utils" >&2
+    echo "Oder nutze ./install.sh --no-enable und starte später manuell." >&2
+    exit 1
+  fi
   echo "WARN: pactl nicht gefunden. Auf Fedora: sudo dnf install pulseaudio-utils" >&2
-}
+fi
 
 install -Dm755 "$SCRIPT_DIR/bin/virt-mic-paw" "$BINDIR/virt-mic-paw"
 install -d "$SYSTEMD_USER_DIR"

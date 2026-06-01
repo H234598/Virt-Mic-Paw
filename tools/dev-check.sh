@@ -94,6 +94,18 @@ if ./install.sh --prefix >/dev/null 2>"$tmpdir/install-prefix.err"; then
 fi
 grep -Fxq 'ERROR: --prefix benötigt einen Wert.' "$tmpdir/install-prefix.err"
 
+no_pactl_path="$tmpdir/no-pactl-path"
+mkdir -p "$no_pactl_path"
+ln -s "$(command -v bash)" "$no_pactl_path/bash"
+ln -s "$(command -v dirname)" "$no_pactl_path/dirname"
+if PATH="$no_pactl_path" ./install.sh --enable --prefix "$tmpdir/no-pactl-prefix" \
+  >/dev/null 2>"$tmpdir/install-enable-no-pactl.err"; then
+  echo "install --enable without pactl unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq 'ERROR: pactl nicht gefunden; --enable kann den Dienst nicht zuverlässig starten.' \
+  "$tmpdir/install-enable-no-pactl.err"
+
 if ./uninstall.sh --prefix >/dev/null 2>"$tmpdir/uninstall-prefix.err"; then
   echo "missing uninstall --prefix argument unexpectedly succeeded" >&2
   exit 1

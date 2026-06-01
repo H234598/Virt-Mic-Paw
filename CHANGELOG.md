@@ -17,6 +17,7 @@
 - Add `virt-mic-paw version` and `--version` output.
 - Check version consistency across CLI, RPM spec and changelog.
 - Add functional smoke tests for bash completion commands and start options.
+- Make `install.sh --enable` fail early when `pactl` is unavailable.
 
 ## 0.1.0 - 2026-06-01
 

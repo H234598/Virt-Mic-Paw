@@ -54,6 +54,8 @@ Ohne automatischen Start:
 ./install.sh --no-enable
 ```
 
+`--enable` benötigt `pactl` bereits während der Installation, weil der Dienst sofort gestartet wird. Wenn `pactl` noch fehlt, installiere zuerst `pulseaudio-utils` oder nutze `--no-enable`.
+
 Danach manuell starten:
 
 ```bash
