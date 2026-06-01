@@ -413,7 +413,12 @@ diag() {
   log ""
   log "== State =="
   log "STATE_FILE=$STATE_FILE"
-  if [[ -f "$STATE_FILE" ]]; then
+  if [[ -L "$STATE_DIR" ]]; then
+    err "State-Verzeichnis darf kein Symlink sein: $STATE_DIR"
+    exit 1
+  fi
+  if [[ -e "$STATE_FILE" || -L "$STATE_FILE" ]]; then
+    validate_state_file
     cat "$STATE_FILE"
   else
     log "Keine State-Datei."

@@ -440,6 +440,14 @@ fi
 grep -Fxq "ERROR: State-Datei darf kein Symlink sein: $state_file_symlink_runtime/virt-mic-paw/modules" \
   "$tmpdir/state-file-symlink.err"
 
+if PATH="$fakebin:$PATH" XDG_RUNTIME_DIR="$state_file_symlink_runtime" \
+  bin/virt-mic-paw diag >/dev/null 2>"$tmpdir/diag-state-file-symlink.err"; then
+  echo "diag with symlink state file unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq "ERROR: State-Datei darf kein Symlink sein: $state_file_symlink_runtime/virt-mic-paw/modules" \
+  "$tmpdir/diag-state-file-symlink.err"
+
 start_runtime="$tmpdir/start-runtime"
 mkdir -p "$start_runtime"
 PATH="$fakebin:$PATH" \

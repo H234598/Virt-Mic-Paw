@@ -13,6 +13,7 @@
 - Create the runtime state directory with private permissions and use a UID-specific `/tmp` fallback.
 - Reject symlinked config and runtime state paths.
 - Create the runtime state file with private permissions and reject symlinked state files.
+- Apply runtime state symlink checks to `diag` output.
 
 ## 0.1.1 - 2026-06-01
 
