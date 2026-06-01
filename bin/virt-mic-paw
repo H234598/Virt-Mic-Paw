@@ -164,8 +164,10 @@ unload_modules() {
   mkdir -p "$STATE_DIR"
   if [[ -f "$STATE_FILE" ]]; then
     tac "$STATE_FILE" | while read -r id; do
-      if [[ -n "${id:-}" ]]; then
+      if [[ "$id" =~ ^[0-9]+$ ]]; then
         pactl unload-module "$id" 2>/dev/null || true
+      elif [[ -n "${id:-}" ]]; then
+        warn "Ungültige Modul-ID in State-Datei übersprungen: $id"
       fi
     done
     rm -f "$STATE_FILE"

@@ -347,6 +347,31 @@ if [[ -s "$bad_id_runtime/virt-mic-paw/modules" ]]; then
   exit 1
 fi
 
+bad_state_runtime="$tmpdir/bad-state-runtime"
+mkdir -p "$bad_state_runtime/virt-mic-paw"
+cat >"$bad_state_runtime/virt-mic-paw/modules" <<'EOF'
+101
+not-a-module-id
+102
+EOF
+PATH="$fakebin:$PATH" \
+  XDG_RUNTIME_DIR="$bad_state_runtime" \
+  VMP_FAKE_PACTL_LOG="$tmpdir/bad-state-pactl.log" \
+  bin/virt-mic-paw stop >"$tmpdir/bad-state.out" 2>"$tmpdir/bad-state.err"
+grep -Fxq 'WARN: Ungültige Modul-ID in State-Datei übersprungen: not-a-module-id' \
+  "$tmpdir/bad-state.err"
+grep -Fxq 'unload 102' "$tmpdir/bad-state-pactl.log"
+grep -Fxq 'unload 101' "$tmpdir/bad-state-pactl.log"
+if grep -Fq 'not-a-module-id' "$tmpdir/bad-state-pactl.log"; then
+  echo "stop passed an invalid state module id to pactl" >&2
+  cat "$tmpdir/bad-state-pactl.log" >&2
+  exit 1
+fi
+if [[ -e "$bad_state_runtime/virt-mic-paw/modules" ]]; then
+  echo "state file remained after stop with invalid module id" >&2
+  exit 1
+fi
+
 fake_runtime="$tmpdir/runtime"
 mkdir -p "$fake_runtime"
 if PATH="$fakebin:$PATH" \
