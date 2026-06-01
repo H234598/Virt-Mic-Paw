@@ -8,6 +8,7 @@
 - Limit GitHub Actions token permissions to read-only repository contents.
 - Add a 10-minute timeout to the GitHub Actions check job.
 - Cancel superseded GitHub Actions check runs on the same ref.
+- Stop printing raw `config.env` contents in `diag` output.
 
 ## 0.1.1 - 2026-06-01
 

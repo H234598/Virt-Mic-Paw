@@ -521,4 +521,23 @@ grep -Fxq '== Module ==' "$tmpdir/diag-active.out"
 grep -Fq 'application.name=virt-mic-paw' "$tmpdir/diag-active.out"
 grep -Fxq 'Server Name: fake-pactl' "$tmpdir/diag-active.out"
 
+diag_config_home="$tmpdir/diag-config-home"
+mkdir -p "$diag_config_home/virt-mic-paw"
+chmod 0700 "$diag_config_home/virt-mic-paw"
+cat >"$diag_config_home/virt-mic-paw/config.env" <<'EOF'
+VMP_MIC_SOURCE="secret_diag_mic"
+VMP_SET_DEFAULT_SOURCE="1"
+EOF
+chmod 0600 "$diag_config_home/virt-mic-paw/config.env"
+PATH="$fakebin:$PATH" \
+  XDG_CONFIG_HOME="$diag_config_home" \
+  VMP_FAKE_PACTL_STATUS=active \
+  bin/virt-mic-paw diag >"$tmpdir/diag-config.out"
+grep -Fxq "CONFIG_FILE=$diag_config_home/virt-mic-paw/config.env" "$tmpdir/diag-config.out"
+grep -Fxq 'Config vorhanden; Inhalt wird in diag nicht ausgegeben.' "$tmpdir/diag-config.out"
+if grep -Fq 'secret_diag_mic' "$tmpdir/diag-config.out"; then
+  echo "diag leaked config file content" >&2
+  exit 1
+fi
+
 echo "checks ok"

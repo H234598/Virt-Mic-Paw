@@ -348,7 +348,8 @@ diag() {
   log "== Config =="
   log "CONFIG_FILE=$CONFIG_FILE"
   if [[ -f "$CONFIG_FILE" ]]; then
-    cat "$CONFIG_FILE"
+    stat -c 'CONFIG_MODE=%a CONFIG_OWNER=%U' "$CONFIG_FILE" 2>/dev/null || true
+    log "Config vorhanden; Inhalt wird in diag nicht ausgegeben."
   else
     log "Keine Config-Datei."
   fi
