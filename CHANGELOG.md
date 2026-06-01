@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.2 - 2026-06-01
+
 - Run `git diff --check` as part of development checks when inside a Git worktree.
 - Run ShellCheck on `tools/dev-check.sh` itself.
 - Rename the GitHub Actions workflow from `shellcheck` to `check`.
