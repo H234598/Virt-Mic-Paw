@@ -25,6 +25,7 @@
 - Report a clear installer error when `systemctl --user enable --now` fails.
 - Include loaded PulseAudio modules in `diag` output.
 - Document and complete the `--version` alias consistently.
+- Match the virtual source exactly in `status` instead of accepting substring matches.
 
 ## 0.1.0 - 2026-06-01
 

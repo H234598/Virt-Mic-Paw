@@ -258,7 +258,7 @@ status_mix() {
   fi
   log ""
   log "== Virtuelle Source =="
-  if pactl list short sources | grep -F "$VIRT_SOURCE"; then
+  if pactl list short sources | awk -v src="$VIRT_SOURCE" '$2 == src {print; found=1} END {exit found ? 0 : 1}'; then
     source_found=1
   else
     log "Virtuelles Mikrofon nicht aktiv."

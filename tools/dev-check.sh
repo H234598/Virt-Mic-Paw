@@ -237,6 +237,8 @@ case "${1:-}" in
           printf '1\ttest_mic\n2\ttest_sink.monitor\n3\tvirtmicpaw\n'
         elif [[ "${VMP_FAKE_PACTL_STATUS:-}" == "module-only" ]]; then
           printf '1\ttest_mic\n2\ttest_sink.monitor\n'
+        elif [[ "${VMP_FAKE_PACTL_STATUS:-}" == "source-substring" ]]; then
+          printf '1\ttest_mic\n2\tnotvirtmicpaw\n'
         else
           printf '1\ttest_mic\n2\ttest_sink.monitor\n'
         fi
@@ -331,6 +333,13 @@ if PATH="$fakebin:$PATH" VMP_FAKE_PACTL_STATUS=module-only \
 fi
 grep -Fq 'application.name=virt-mic-paw' "$tmpdir/status-module-only.out"
 grep -Fxq 'Virtuelles Mikrofon nicht aktiv.' "$tmpdir/status-module-only.out"
+
+if PATH="$fakebin:$PATH" VMP_FAKE_PACTL_STATUS=source-substring \
+  bin/virt-mic-paw status >"$tmpdir/status-source-substring.out"; then
+  echo "substring source status unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq 'Virtuelles Mikrofon nicht aktiv.' "$tmpdir/status-source-substring.out"
 
 PATH="$fakebin:$PATH" VMP_FAKE_PACTL_STATUS=active \
   bin/virt-mic-paw diag >"$tmpdir/diag-active.out"
