@@ -266,15 +266,7 @@ else
   exec /usr/bin/stat "\$@"
 fi
 EOF
-cat >"$wrong_owner_path/id" <<'EOF'
-#!/usr/bin/env bash
-if [[ "${1:-}" == "-u" ]]; then
-  printf '%s\n' '1000'
-else
-  exec /usr/bin/id "$@"
-fi
-EOF
-chmod +x "$wrong_owner_path/stat" "$wrong_owner_path/id"
+chmod +x "$wrong_owner_path/stat"
 if PATH="$wrong_owner_path:$PATH" XDG_CONFIG_HOME="$wrong_owner_config_home" \
   bin/virt-mic-paw version >/dev/null 2>"$tmpdir/config-wrong-owner.err"; then
   echo "wrong-owner config unexpectedly succeeded" >&2
