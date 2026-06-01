@@ -19,6 +19,7 @@
 - Add functional smoke tests for bash completion commands and start options.
 - Make `install.sh --enable` fail early when `pactl` is unavailable.
 - Test that `install.sh --no-enable` still works without `pactl`.
+- Add fake-`pactl` smoke tests for active and inactive `status` behavior.
 
 ## 0.1.0 - 2026-06-01
 

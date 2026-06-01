@@ -167,7 +167,7 @@ mkdir -p "$fakebin"
 cat >"$fakebin/pactl" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-log="${VMP_FAKE_PACTL_LOG:?}"
+log="${VMP_FAKE_PACTL_LOG:-}"
 case "${1:-}" in
   get-default-sink)
     printf '%s\n' "test_sink"
@@ -178,10 +178,18 @@ case "${1:-}" in
   list)
     case "${2:-} ${3:-}" in
       "short sources")
-        printf '1\ttest_mic\n2\ttest_sink.monitor\n'
+        if [[ "${VMP_FAKE_PACTL_STATUS:-}" == "active" ]]; then
+          printf '1\ttest_mic\n2\ttest_sink.monitor\n3\tvirtmicpaw\n'
+        else
+          printf '1\ttest_mic\n2\ttest_sink.monitor\n'
+        fi
         ;;
       "short modules")
-        printf '\n'
+        if [[ "${VMP_FAKE_PACTL_STATUS:-}" == "active" ]]; then
+          printf '10\tmodule-null-sink\tapplication.name=virt-mic-paw\n'
+        else
+          printf '\n'
+        fi
         ;;
       *)
         exit 2
@@ -189,6 +197,9 @@ case "${1:-}" in
     esac
     ;;
   load-module)
+    if [[ -z "$log" ]]; then
+      exit 2
+    fi
     printf 'load %s\n' "$2" >>"$log"
     case "$2" in
       module-null-sink) printf '101\n' ;;
@@ -211,6 +222,9 @@ case "${1:-}" in
     esac
     ;;
   unload-module)
+    if [[ -z "$log" ]]; then
+      exit 2
+    fi
     printf 'unload %s\n' "$2" >>"$log"
     ;;
   *)
@@ -238,5 +252,19 @@ if [[ -e "$fake_runtime/virt-mic-paw/modules" ]]; then
   echo "state file remained after failed start rollback" >&2
   exit 1
 fi
+
+if PATH="$fakebin:$PATH" bin/virt-mic-paw status >"$tmpdir/status-inactive.out"; then
+  echo "inactive status unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq 'Virtuelles Mikrofon nicht aktiv.' "$tmpdir/status-inactive.out"
+
+if ! PATH="$fakebin:$PATH" VMP_FAKE_PACTL_STATUS=active \
+  bin/virt-mic-paw status >"$tmpdir/status-active.out"; then
+  echo "active status unexpectedly failed" >&2
+  exit 1
+fi
+grep -Fq 'application.name=virt-mic-paw' "$tmpdir/status-active.out"
+grep -Fq 'virtmicpaw' "$tmpdir/status-active.out"
 
 echo "checks ok"
