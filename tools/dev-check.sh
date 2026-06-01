@@ -275,7 +275,11 @@ case "${1:-}" in
         printf '%s\n' "$((101 + count))"
         ;;
       module-remap-source)
-        exit 23
+        if [[ "${VMP_FAKE_PACTL_REMAP:-}" == "ok" ]]; then
+          printf '104\n'
+        else
+          exit 23
+        fi
         ;;
       *)
         exit 2
@@ -288,12 +292,35 @@ case "${1:-}" in
     fi
     printf 'unload %s\n' "$2" >>"$log"
     ;;
+  set-default-source)
+    if [[ -z "$log" ]]; then
+      exit 2
+    fi
+    printf 'default %s\n' "$2" >>"$log"
+    ;;
   *)
     exit 2
     ;;
 esac
 EOF
 chmod +x "$fakebin/pactl"
+
+start_runtime="$tmpdir/start-runtime"
+mkdir -p "$start_runtime"
+PATH="$fakebin:$PATH" \
+  XDG_RUNTIME_DIR="$start_runtime" \
+  VMP_FAKE_PACTL_LOG="$tmpdir/start-ok-pactl.log" \
+  VMP_FAKE_PACTL_COUNT="$tmpdir/start-ok-pactl.count" \
+  VMP_FAKE_PACTL_REMAP=ok \
+  bin/virt-mic-paw start >"$tmpdir/start-ok.out"
+grep -Fxq 'Virt-Mic-Paw läuft.' "$tmpdir/start-ok.out"
+grep -Fxq 'load module-null-sink' "$tmpdir/start-ok-pactl.log"
+grep -Fxq 'load module-remap-source' "$tmpdir/start-ok-pactl.log"
+grep -Fxq 'default virtmicpaw' "$tmpdir/start-ok-pactl.log"
+grep -Fxq '101' "$start_runtime/virt-mic-paw/modules"
+grep -Fxq '102' "$start_runtime/virt-mic-paw/modules"
+grep -Fxq '103' "$start_runtime/virt-mic-paw/modules"
+grep -Fxq '104' "$start_runtime/virt-mic-paw/modules"
 
 fake_runtime="$tmpdir/runtime"
 mkdir -p "$fake_runtime"
