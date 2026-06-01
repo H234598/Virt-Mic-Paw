@@ -1,15 +1,15 @@
-name: shellcheck
+name: check
 
 on:
   push:
   pull_request:
 
 jobs:
-  shellcheck:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Install ShellCheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
-      - name: Check scripts
+      - name: Run checks
         run: make check
