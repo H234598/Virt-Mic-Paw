@@ -192,6 +192,12 @@ Danach das Zielprogramm neu öffnen. Manche Apps lesen Eingabegeräte nur beim S
 ./uninstall.sh
 ```
 
+Mit anderem Installationspräfix:
+
+```bash
+./uninstall.sh --prefix ~/.local
+```
+
 Die Konfiguration unter `~/.config/virt-mic-paw` bleibt erhalten.
 
 ## Systemweite Installation

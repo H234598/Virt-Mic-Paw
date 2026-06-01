@@ -12,6 +12,7 @@
 - Roll back partially loaded PulseAudio modules when startup fails midway.
 - Run CI checks through the public `make check` target.
 - Declare `make` as an RPM build dependency and check key spec metadata in development checks.
+- Add `uninstall.sh --prefix` support matching the installer.
 
 ## 0.1.0 - 2026-06-01
 

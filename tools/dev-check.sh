@@ -49,6 +49,12 @@ if ./install.sh --prefix >/dev/null 2>"$tmpdir/install-prefix.err"; then
 fi
 grep -Fxq 'ERROR: --prefix benötigt einen Wert.' "$tmpdir/install-prefix.err"
 
+if ./uninstall.sh --prefix >/dev/null 2>"$tmpdir/uninstall-prefix.err"; then
+  echo "missing uninstall --prefix argument unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq 'ERROR: --prefix benötigt einen Wert.' "$tmpdir/uninstall-prefix.err"
+
 config_home="$tmpdir/config-home"
 mkdir -p "$config_home/virt-mic-paw"
 cat >"$config_home/virt-mic-paw/config.env" <<'EOF'
