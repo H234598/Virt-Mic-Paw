@@ -5,7 +5,7 @@ _virt_mic_paw() {
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
-  commands="start stop restart status list config diag help"
+  commands="start stop restart status list config diag version help"
   opts_start="--mic --sink --monitor --latency --no-default --help"
   opts_global="--help"
 

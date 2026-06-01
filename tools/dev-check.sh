@@ -39,6 +39,9 @@ grep -Fxq 'BuildRequires:  make' packaging/virt-mic-paw.spec
 grep -Fxq 'Requires:       pulseaudio-utils' packaging/virt-mic-paw.spec
 grep -Fxq 'License:        AGPL-3.0-or-later' packaging/virt-mic-paw.spec
 
+grep -Fxq 'virt-mic-paw 0.1.0' < <(bin/virt-mic-paw version)
+grep -Fxq 'virt-mic-paw 0.1.0' < <(bin/virt-mic-paw --version)
+
 if bin/virt-mic-paw start --mic >/dev/null 2>"$tmpdir/missing-arg.err"; then
   echo "missing --mic argument unexpectedly succeeded" >&2
   exit 1

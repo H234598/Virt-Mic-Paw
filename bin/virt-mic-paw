@@ -2,6 +2,7 @@
 set -euo pipefail
 
 APP="virt-mic-paw"
+VERSION="0.1.0"
 BUS_SINK="virtmicpaw_bus"
 VIRT_SOURCE="virtmicpaw"
 BUS_DESC="Virt-Mic-Paw Mix-Bus"
@@ -33,6 +34,7 @@ Usage:
   virt-mic-paw list
   virt-mic-paw config
   virt-mic-paw diag
+  virt-mic-paw version
   virt-mic-paw help
 
 Beispiele:
@@ -51,6 +53,10 @@ Variablen:
   VMP_LATENCY_MSEC="20"
   VMP_SET_DEFAULT_SOURCE="1"
 EOF
+}
+
+show_version() {
+  printf '%s %s\n' "$APP" "$VERSION"
 }
 
 load_config() {
@@ -370,6 +376,9 @@ main() {
       ;;
     diag|diagnose)
       diag
+      ;;
+    version|--version)
+      show_version
       ;;
     help|-h|--help)
       usage

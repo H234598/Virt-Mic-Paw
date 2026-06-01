@@ -14,6 +14,7 @@
 - Declare `make` as an RPM build dependency and check key spec metadata in development checks.
 - Add `uninstall.sh --prefix` support matching the installer.
 - Add a `make uninstall` smoke test for installed files, service, completion, docs and license paths.
+- Add `virt-mic-paw version` and `--version` output.
 
 ## 0.1.0 - 2026-06-01
 

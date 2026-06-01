@@ -66,6 +66,12 @@ Status anzeigen:
 virt-mic-paw status
 ```
 
+Version anzeigen:
+
+```bash
+virt-mic-paw version
+```
+
 Stoppen:
 
 ```bash
