@@ -10,6 +10,7 @@
 - Harden `install.sh --prefix` option parsing for missing values.
 - Validate conflicting sink/monitor configuration and invalid `VMP_SET_DEFAULT_SOURCE` values.
 - Roll back partially loaded PulseAudio modules when startup fails midway.
+- Run CI checks through the public `make check` target.
 
 ## 0.1.0 - 2026-06-01
 
