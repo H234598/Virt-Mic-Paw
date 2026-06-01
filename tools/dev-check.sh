@@ -135,6 +135,41 @@ test -x "$tmpdir/no-enable-prefix/bin/virt-mic-paw"
 test -f "$no_enable_home/config/systemd/user/virt-mic-paw.service"
 test -f "$no_enable_home/data/bash-completion/completions/virt-mic-paw"
 
+enable_fail_path="$tmpdir/enable-fail-path"
+mkdir -p "$enable_fail_path"
+for cmd in awk cat chmod dirname env install mkdir pwd; do
+  ln -s "$(command -v "$cmd")" "$enable_fail_path/$cmd"
+done
+ln -s "$(command -v bash)" "$enable_fail_path/bash"
+cat >"$enable_fail_path/pactl" <<'EOF'
+#!/usr/bin/env bash
+exit 0
+EOF
+cat >"$enable_fail_path/systemctl" <<'EOF'
+#!/usr/bin/env bash
+if [[ "$*" == "--user daemon-reload" ]]; then
+  exit 0
+fi
+exit 42
+EOF
+chmod +x "$enable_fail_path/pactl" "$enable_fail_path/systemctl"
+
+enable_fail_home="$tmpdir/enable-fail-home"
+mkdir -p "$enable_fail_home/config" "$enable_fail_home/data"
+if PATH="$enable_fail_path" \
+  HOME="$enable_fail_home/home" \
+  XDG_CONFIG_HOME="$enable_fail_home/config" \
+  XDG_DATA_HOME="$enable_fail_home/data" \
+  ./install.sh --enable --prefix "$tmpdir/enable-fail-prefix" \
+  >"$tmpdir/install-enable-systemctl.out" 2>"$tmpdir/install-enable-systemctl.err"; then
+  echo "install --enable with failing systemctl unexpectedly succeeded" >&2
+  exit 1
+fi
+grep -Fxq 'ERROR: virt-mic-paw.service konnte nicht aktiviert oder gestartet werden.' \
+  "$tmpdir/install-enable-systemctl.err"
+grep -Fxq 'Prüfe: systemctl --user status virt-mic-paw.service' \
+  "$tmpdir/install-enable-systemctl.err"
+
 if ./uninstall.sh --prefix >/dev/null 2>"$tmpdir/uninstall-prefix.err"; then
   echo "missing uninstall --prefix argument unexpectedly succeeded" >&2
   exit 1

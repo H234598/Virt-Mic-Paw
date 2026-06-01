@@ -74,7 +74,11 @@ install -Dm644 "$SCRIPT_DIR/docs/security.md" "$DOC_DIR/security.md"
 systemctl --user daemon-reload >/dev/null 2>&1 || true
 
 if [[ "$ENABLE" == "1" ]]; then
-  systemctl --user enable --now virt-mic-paw.service
+  if ! systemctl --user enable --now virt-mic-paw.service; then
+    echo "ERROR: virt-mic-paw.service konnte nicht aktiviert oder gestartet werden." >&2
+    echo "Prüfe: systemctl --user status virt-mic-paw.service" >&2
+    exit 1
+  fi
   echo "Virt-Mic-Paw installiert und gestartet."
 else
   echo "Virt-Mic-Paw installiert. Starte mit: virt-mic-paw start"

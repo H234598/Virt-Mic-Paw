@@ -22,6 +22,7 @@
 - Add fake-`pactl` smoke tests for active and inactive `status` behavior.
 - Make `status` succeed only when the virtual source is present, not merely when stale modules exist.
 - Validate `tools/publish-github.sh` repository arguments before writing Git remotes.
+- Report a clear installer error when `systemctl --user enable --now` fails.
 
 ## 0.1.0 - 2026-06-01
 
